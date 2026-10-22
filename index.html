@@ -108,6 +108,11 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
 .gbtns { display: flex; gap: 4px; flex-shrink: 0; }
 .gbtns .btn { padding: 4px 8px; font-size: 12px; }
 
+/* ---------- footer ---------- */
+.foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--muted); }
+.foot a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.foot a:hover { text-decoration: underline; }
+
 /* ---------- export panel ---------- */
 .exportBox { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 8px; }
 .exportBox textarea { width: 100%; height: 160px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; font-family: var(--f-mono); font-size: 11px; }
@@ -384,6 +389,10 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
       <p class="hint">Modelled on the grandMA3 2.5 pool, sheet and playback windows. Pool objects use the theme's default colours; objects with their own appearance keep theirs on the console.</p>
     </aside>
   </div>
+  <footer class="foot">
+    <a href="https://github.com/jaylenjinx/ma3-theme-builder">Source on GitHub</a>
+    <span>Not affiliated with MA Lighting. grandMA3 is a trademark of MA Lighting Technology GmbH.</span>
+  </footer>
 </div>
 
 <script>
