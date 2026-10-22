@@ -22,6 +22,13 @@ Edits are kept in your browser between visits.
 
 Save the exported `.xml` into `gma3_library/colorthemes` (on a USB stick for a console, or in the MA library folder on onPC), then import it from the Color Theme menu.
 
+## Files
+
+- `index.html`: page layout and the live screen markup
+- `main.css`: styles
+- `main.js`: theme parsing, editor, gallery schemes and export
+- `theme.xml`: the bundled starting theme
+
 ## Running locally
 
 ```
