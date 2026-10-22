@@ -4,7 +4,7 @@
 
 A browser tool for editing grandMA3 colour themes. Pick colours, read what each one does, and watch a mock console screen update as you go.
 
-**Live:** https://jaylenjinx.github.io/ma3-theme-builder/
+**Live:** https://themes.sulfurdesign.com/
 
 ## What it does
 
