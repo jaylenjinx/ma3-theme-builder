@@ -6,7 +6,7 @@
 <title>MA3 Theme Builder</title>
 <meta name="description" content="Edit a grandMA3 colour theme with colour pickers, notes on every colour and a live console preview.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Saira+Semi+Condensed:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Roboto+Condensed:wght@400;700&family=JetBrains+Mono:wght@400;500&family=Saira+Semi+Condensed:wght@500;700&display=swap">
 <style>
 /* Layout: console-style workbench. Colour list on the left, sticky live MA3 mock screen on the right; stacks on phones. */
 :root {
@@ -95,14 +95,13 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
 .gcard { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; min-width: 0; }
 .gprev { padding: 8px; font-family: Arial, Helvetica, sans-serif; font-size: 9.5px; }
 .gwin { border: 1px solid; border-radius: 2px; overflow: hidden; }
-.gtitle { padding: 2px 5px; font-weight: bold; }
 .gtiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; }
-.gtiles span { padding: 8px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gtiles span { padding: 7px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .grow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; padding: 0 2px 2px; }
 .grow i { font-style: normal; padding: 2px 3px; }
 .gfader { height: 6px; margin: 0 2px 3px; position: relative; }
 .gfader b { position: absolute; inset: 0 35% 0 0; }
-.gmeta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px 10px; border-top: 1px solid var(--line); }
+.gmeta { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 8px; padding: 8px 10px 10px; border-top: 1px solid var(--line); }
 .gmeta > div:first-child { min-width: 0; }
 .gmeta h3 { margin: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gmeta p { margin: 0; font-size: 11.5px; color: var(--muted); }
@@ -120,55 +119,85 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
 .demoHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 .demoHead h2 { font-family: var(--f-display); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; }
 .hint { font-size: 12px; color: var(--muted); }
-.screen { background: #000; border: 1px solid #000; border-radius: 6px; padding: 6px; display: grid; gap: 6px; font-family: Arial, Helvetica, sans-serif; font-size: 12px; overflow: hidden;
+.screen { background: #000; border: 1px solid #000; border-radius: 6px; padding: 4px; display: grid; gap: 4px; font-family: "Roboto Condensed", "Arial Narrow", Arial, sans-serif; font-size: 12px; overflow: hidden;
   color: var(--c-Global-Text); }
 .screen [data-k] { cursor: pointer; }
 .screen [data-k]:hover { outline: 1px dashed rgba(232,169,1,.8); outline-offset: -1px; }
-.win { background: var(--c-Global-Background); border: 1px solid var(--c-Global-IndicatorBar); border-radius: 3px; min-width: 0; overflow: hidden; }
-.win.focus { border-color: var(--c-Global-FocusFrame); }
-.wtitle { display: flex; align-items: center; gap: 6px; background: var(--c-Global-TitleGray); color: var(--c-Global-Text); padding: 3px 6px; font-weight: bold; font-size: 11.5px; }
-.wtitle .ico { width: 14px; height: 14px; border-radius: 2px; display: inline-block; }
-.wtitle .sel { margin-left: auto; background: var(--c-Global-Selected); color: var(--c-Global-TextDark); padding: 0 6px; border-radius: 2px; }
-.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
-.pool { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 2px; }
-.tile { position: relative; aspect-ratio: 1.15; background: var(--c-Global-ButtonBackground); color: var(--c-Global-Text); padding: 3px; font-size: 10.5px; line-height: 1.15; overflow: hidden; border: 1px solid transparent; }
-.tile b { display: block; font-weight: normal; color: var(--c-Global-LabelText); font-size: 9.5px; }
-.tile.sel { border-color: var(--c-Global-Selected); color: var(--c-Global-Selected); }
-.tile.ref::after { content: ""; position: absolute; right: 2px; top: 2px; width: 6px; height: 6px; background: var(--c-Global-Referenced); border-radius: 1px; }
-.tile .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
-.tile.empty { background: transparent; border-color: var(--c-Global-DefaultCellAltBackground); }
-.sheet { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
-.sheet th { background: var(--c-Global-Header); color: var(--c-Global-Text); text-align: left; padding: 3px 5px; font-weight: bold; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; }
+/* pool windows: the first cell is the pool's title object, like on the console */
+.pool { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: #000; }
+.ptitle { position: relative; aspect-ratio: 1 / .78; background: var(--pc); color: var(--c-Global-Text); display: grid; place-items: center; padding: 4px; text-align: center; overflow: hidden; }
+.malogo { position: absolute; left: 4px; top: 4px; display: flex; gap: 2px; }
+.malogo b { width: 15px; height: 15px; display: grid; place-items: center; font: 700 12px/1 Arial, sans-serif; color: var(--pc); background: rgba(0,0,0,.65); border: 1px solid rgba(0,0,0,.9); }
+.ptitle .pname { font-weight: 700; font-size: 15px; line-height: 1.1; margin-top: 12px; }
+.ptitle .pname small { display: block; font-size: 13px; font-weight: 700; }
+.pt { position: relative; aspect-ratio: 1 / .78; background: var(--c-Global-ButtonBackground); color: var(--c-Global-Text); overflow: hidden; }
+.pt .no { position: absolute; left: 4px; top: 2px; font-size: 11px; color: var(--c-Global-Text); }
+.pt .nm { position: absolute; inset: 14px 3px 6px; display: grid; place-items: center; text-align: center; font-size: 13px; line-height: 1.1; }
+.pt .ind { position: absolute; right: 4px; top: 1px; font-size: 11px; font-weight: 700; line-height: 1.2; }
+.pt.sel { box-shadow: inset 0 0 0 2px var(--c-Global-Selected); }
+.pt.sel .nm { color: var(--c-Global-Selected); }
+.pt.empty { background: var(--c-Global-Background); }
+.pt.empty .no { color: var(--c-Global-TextDefault); }
+.pt.grip::after { content: ""; position: absolute; right: 3px; bottom: 3px; width: 10px; height: 10px; background: repeating-linear-gradient(135deg, transparent 0 2px, var(--c-Global-TextDefault) 2px 3px); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.gmbar { position: absolute; left: 4px; right: 4px; bottom: 4px; height: 13px; background: var(--c-Playback-FaderBarBack); font-size: 10px; text-align: center; line-height: 13px; color: var(--c-Global-Text); }
+.gmbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c-Playback-FaderBar); }
+.gmbar em { position: relative; font-style: normal; }
+.pt .swatch { position: absolute; left: 50%; top: 52%; width: 46%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; }
+.pt .vbar { position: absolute; right: 4px; top: 16px; bottom: 9px; width: 4px; background: var(--c-Playback-FaderBarBack); }
+.pt .vbar i { position: absolute; left: 0; right: 0; bottom: 0; height: 60%; background: var(--c-Playback-FaderBar); }
+.pt .sub { position: absolute; left: 4px; top: 14px; font-size: 11px; color: var(--c-SheetColor-PresetText); }
+.pt .runbar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--c-Playback-On); }
+/* windows with a title bar */
+.win { background: var(--c-Global-Background); min-width: 0; overflow: hidden; }
+.wtitle { display: flex; align-items: center; gap: 8px; background: var(--c-Global-TitleGray); color: var(--c-Global-Text); padding: 3px 6px; min-height: 26px; }
+.wtitle .malogo { position: static; --pc: var(--c-Global-TitleGray); }
+.wtitle .malogo b { background: var(--c-Global-Text); color: var(--c-Global-TitleGray); border-color: var(--c-Global-Text); width: 13px; height: 13px; font-size: 11px; }
+.wtitle .tt { font-size: 13px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.wtitle .tt small { display: block; font-size: 10px; color: var(--c-Global-LabelText); }
+.wtitle .wtools { margin-left: auto; display: flex; gap: 1px; }
+.wtitle .wtools span { background: var(--c-Global-ButtonBackground); padding: 3px 7px; font-size: 11px; white-space: nowrap; }
+.wtitle .wtools span.on { background: var(--c-Global-BackgroundSelected); color: var(--c-Global-Selected); }
+.sheet { width: 100%; border-collapse: collapse; font-size: 11.5px; table-layout: fixed; }
+.sheet th { background: var(--c-Global-Header); color: var(--c-Global-Text); text-align: center; padding: 3px 4px; font-weight: normal; border-right: 1px solid #000; }
 .sheet th:nth-child(even) { background: var(--c-Global-AltHeader); }
-.sheet td { padding: 3px 5px; color: var(--c-SheetColor-Text); background: var(--c-Global-DefaultCellBackground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sheet td { padding: 3px 5px; color: var(--c-Global-Text); background: var(--c-Global-DefaultCellBackground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; border-right: 1px solid #000; }
+.sheet td.l { text-align: left; }
 .sheet tr:nth-child(even) td { background: var(--c-Global-DefaultCellAltBackground); }
+.sheet tr.cue td { border-top: 2px solid var(--c-Global-Text); }
+.sheet tr.cur td.name { background: var(--c-Global-SelectedFrameBackground); }
+.sheet tr.cur td { box-shadow: inset 0 -1px var(--c-Global-SelectedRowBorder); }
+.sheet td.dim { color: var(--c-Global-TextDefault); }
 .sheet td.id { color: var(--c-SheetColor-IDText); background: var(--c-SheetColor-ID); }
-.sheet tr.selrow td { background: var(--c-Global-SelectedFrameBackground); box-shadow: inset 0 1px var(--c-Global-SelectedRowBorder), inset 0 -1px var(--c-Global-SelectedRowBorder); }
-.sheet tr.selrow td.id { color: var(--c-Global-Selected); }
+.sheet tr.selfix td.id { color: var(--c-Global-Selected); }
 .sheet td.abs { background: var(--c-SheetColor-Absolute); color: var(--c-SheetColor-AbsoluteText); }
 .sheet td.rel { background: var(--c-SheetColor-Relative); color: var(--c-SheetColor-RelativeText); }
 .sheet td.pre { background: var(--c-SheetColor-PresetAbs); color: var(--c-SheetColor-PresetText); }
 .sheet td.fade { background: var(--c-SheetColor-Fade); color: var(--c-SheetColor-FadeText); }
-.sheet td.dly { background: var(--c-SheetColor-Delay); color: var(--c-SheetColor-DelayText); }
+.sheet td.fadev { background: var(--c-SheetColor-Fade); color: var(--c-Global-Text); }
+.sheet td.dly { background: var(--c-SheetColor-Delay); color: var(--c-Global-Text); }
 .sheet td.phs { background: var(--c-SheetColor-Phaser); color: var(--c-SheetColor-PhaserText); }
 .sheet td.trk { color: var(--c-SheetColor-TextTracked); }
-.sheet td.pb { color: var(--c-SheetColor-TextPlayback); }
-.sheet td.def { color: var(--c-Global-TextDefault); }
-.execs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; padding: 3px; }
-.exec { background: var(--c-Global-ButtonBackground); display: grid; grid-template-rows: auto 1fr auto auto; gap: 3px; padding: 3px; min-height: 140px; min-width: 0; }
-.exec.fixed { background: var(--c-Global-Fixed); }
-.exec .lbl { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--c-Global-LabelText); }
-.exec .nm { color: var(--c-Global-Bright); font-size: 11px; font-weight: bold; text-shadow: 0 1px var(--c-Global-Shadow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.exec .cue { font-size: 9.5px; background: var(--c-Playback-ActiveCue); color: var(--c-Global-Text); padding: 1px 3px; white-space: nowrap; overflow: hidden; }
-.fader { position: relative; background: var(--c-Playback-FaderBarBack); min-height: 56px; }
-.fader i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--c-Playback-FaderBar); }
-.fader span { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; color: var(--c-Playback-FaderBarText); font-size: 10px; font-weight: bold; }
-.leds { display: flex; gap: 3px; }
-.leds b { flex: 1; height: 5px; background: var(--c-Playback-Off); border: 1px solid var(--c-Global-IndicatorBar); }
-.leds b.on { background: var(--c-Playback-On); }
-.leds b.paused { background: var(--c-Playback-Paused); }
-.bar2 { display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; }
-.mbtn { background: var(--c-Global-ButtonBackground); color: var(--c-Global-Text); padding: 6px 8px; border-radius: 2px; font-size: 11px; border: 0; cursor: pointer; font-family: inherit; }
+/* executors, modelled on the Playbacks window */
+.execs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: #000; padding-top: 1px; }
+.exec { display: grid; gap: 1px; min-width: 0; align-content: start; }
+.exec .ehead { display: flex; justify-content: space-between; gap: 4px; padding: 1px 3px; font-size: 10px; background: var(--c-Global-ButtonBackground); color: var(--c-Global-Text); }
+.exec .ehead b { font-weight: normal; font-size: 11.5px; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exec.run .ehead { background: var(--c-PoolDefault-Sequence); color: var(--c-Global-TextDark); }
+.exec .cues { background: var(--c-Global-Background); font-size: 10px; line-height: 1.35; padding: 1px 0; min-height: 44px; }
+.exec .cues div { padding: 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--c-Global-Text); }
+.exec .cues .act { background: var(--c-Playback-ActiveCue); box-shadow: inset 0 0 0 1px var(--c-Global-Text); }
+.exec .mst { background: var(--c-SheetColor-TextPlaybackTracked); color: var(--c-Global-TextDark); font-size: 9.5px; text-align: center; line-height: 12px; }
+.exec .ebtn { position: relative; background: var(--c-Global-ButtonBackground); border-top: 3px solid var(--c-PoolDefault-Sequence); text-align: center; padding: 10px 2px 4px; font-size: 12px; color: var(--c-Global-Text); }
+.exec .ebtn small, .exec .efad small { position: absolute; left: 3px; top: 0; font-size: 9px; color: var(--c-Global-LabelText); }
+.exec .efad { position: relative; background: var(--c-Global-ButtonBackground); border-top: 3px solid var(--c-PoolDefault-Sequence); padding-top: 12px; text-align: center; font-size: 11px; line-height: 1.15; color: var(--c-Global-Bright); }
+.exec.fixed .efad { background: var(--c-Global-Fixed); }
+.exec .track { position: relative; height: 54px; margin-top: 4px; background: var(--c-Global-BackgroundDark); }
+.exec .track i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--c-Playback-FaderBar); }
+.exec .track span { position: absolute; left: 0; right: 0; bottom: 3px; font-size: 12px; color: var(--c-Global-Text); }
+.exec.idle .ebtn, .exec.idle .efad { border-top-color: var(--c-Global-ButtonBackground); }
+.bar2 { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; }
+.mbtn { background: var(--c-Global-ButtonBackground); color: var(--c-Global-Text); padding: 7px 9px; font-size: 12px; border: 0; cursor: pointer; font-family: inherit; }
 .mbtn:hover { background: var(--c-Global-Hover); }
 .mbtn:active, .mbtn.press { background: var(--c-Global-Pressed); }
 .mbtn.on { background: var(--c-Global-BackgroundSelected); color: var(--c-Global-Selected); }
@@ -176,15 +205,11 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
 .mbtn.please { background: var(--c-Global-GreenBackground); }
 .mbtn.dis { color: var(--c-Global-Disabled); }
 .mbtn .add { color: var(--c-Global-ButtonAdditionalText); font-size: 9.5px; display: block; }
-.cmd { display: flex; align-items: center; gap: 6px; background: var(--c-Global-BackgroundDark); border: 1px solid var(--c-Global-FocusFrame); padding: 4px 6px; font-family: var(--f-mono); font-size: 11px; color: var(--c-Global-Text); min-width: 0; overflow: hidden; white-space: nowrap; }
+.msgs { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 3px 3px; font-size: 11px; }
+.msgs span { padding: 2px 6px; background: var(--c-Global-ButtonBackgroundDarker); }
+.cmd { display: flex; align-items: center; gap: 6px; background: var(--c-Global-BackgroundDark); border: 1px solid var(--c-Global-FocusFrame); padding: 4px 6px; font-size: 12px; color: var(--c-Global-Text); min-width: 0; overflow: hidden; white-space: nowrap; }
 .cmd .p { color: var(--c-Global-LabelText); }
-.msgs { display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; font-size: 10.5px; }
-.msgs span { padding: 2px 6px; border-radius: 2px; background: var(--c-Global-ButtonBackgroundDarker); }
-.popup { display: grid; gap: 1px; padding: 3px; }
-.popup div { background: var(--c-Global-ButtonBackground); padding: 4px 6px; font-size: 11px; }
-.popup div.sel { background: var(--c-Global-ButtonBackgroundDarker); color: var(--c-Global-Selected); }
-.popup div.emp { color: var(--c-Global-TextDefault); }
-@media (max-width: 520px) { .cols { grid-template-columns: minmax(0, 1fr); } .execs { grid-template-columns: repeat(3, minmax(0, 1fr)); } .execs .exec:nth-child(n+4) { display: none; } }
+@media (max-width: 520px) { .cols { grid-template-columns: minmax(0, 1fr); } .pool { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pool > :nth-child(n+5) { display: none; } .execs { grid-template-columns: repeat(3, minmax(0, 1fr)); } .execs .exec:nth-child(n+4) { display: none; } }
 </style>
 </head>
 <body>
@@ -234,64 +259,108 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
         <button class="btn ghost" id="btnCompare" type="button">Hold to see original</button>
       </div>
       <div class="screen" id="screen">
-        <div class="cols">
-          <div class="win focus" data-k="Global.FocusFrame">
-            <div class="wtitle" data-k="Global.TitleGray"><span class="ico" style="background:var(--c-PoolDefault-Group)" data-k="PoolDefault.Group"></span>Groups<span class="sel" data-k="Global.Selected">12</span></div>
-            <div class="pool">
-              <div class="tile" data-k="Global.ButtonBackground"><b>1</b>All Spots</div>
-              <div class="tile sel" data-k="Global.Selected"><b>2</b>All Washes</div>
-              <div class="tile ref" data-k="Global.Referenced"><b>3</b>Beams</div>
-              <div class="tile" data-k="Global.ButtonBackground"><b>4</b>Blinders</div>
-              <div class="tile" data-k="Global.ButtonBackground"><b>5</b>Strips</div>
-              <div class="tile" data-k="Global.ButtonBackground"><b>6</b>Haze</div>
-              <div class="tile empty" data-k="Global.DefaultCellAltBackground"><b>7</b></div>
-              <div class="tile empty" data-k="Global.DefaultCellAltBackground"><b>8</b></div>
-            </div>
-          </div>
-          <div class="win">
-            <div class="wtitle" data-k="Global.TitleGray"><span class="ico" style="background:var(--c-PoolDefault-PresetColor)" data-k="PoolDefault.PresetColor"></span>Color Presets</div>
-            <div class="pool">
-              <div class="tile" style="background:var(--c-PoolDefault-PresetColor)" data-k="PoolDefault.PresetColor"><b>4.1</b>White<span class="bar" style="background:#fff"></span></div>
-              <div class="tile" style="background:var(--c-PoolDefault-PresetColor);box-shadow:inset 0 0 0 2px var(--c-Global-SelectedPreset)" data-k="Global.SelectedPreset"><b>4.2</b>Red<span class="bar" style="background:#f00"></span></div>
-              <div class="tile" style="background:var(--c-PoolDefault-PresetColor);box-shadow:inset 0 0 0 2px var(--c-Global-PartlySelectedPreset)" data-k="Global.PartlySelectedPreset"><b>4.3</b>Amber<span class="bar" style="background:#ffa000"></span></div>
-              <div class="tile" style="background:var(--c-PoolDefault-PresetColor)" data-k="PoolDefault.PresetColor"><b>4.4</b>Cyan<span class="bar" style="background:#0ff"></span></div>
-              <div class="tile" style="background:var(--c-PoolDefault-Macro)" data-k="PoolDefault.Macro"><b>Macro</b>FS Home</div>
-              <div class="tile" style="background:var(--c-PoolDefault-Macro)" data-k="PoolDefault.Macro"><b>Macro</b>Clear All</div>
-              <div class="tile" style="background:var(--c-PoolDefault-Sequence)" data-k="PoolDefault.Sequence"><b>Seq</b>Look 1</div>
-              <div class="tile" style="background:var(--c-PoolDefault-Plugin)" data-k="PoolDefault.Plugin"><b>Plugin</b>FireSystem</div>
-            </div>
-          </div>
+        <div class="pool" aria-label="Group pool">
+          <div class="ptitle" style="--pc:var(--c-PoolDefault-Group)" data-k="PoolDefault.Group"><span class="malogo"><b>M</b><b>A</b></span><span class="pname">Groups</span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">1</span><span class="ind" style="color:var(--c-Global-Referenced)" data-k="Global.Referenced">&#x2913;</span><span class="nm">All Spots</span></div>
+          <div class="pt sel" data-k="Global.Selected"><span class="no">2</span><span class="nm">All Wash</span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">3</span><span class="nm">Blinders</span></div>
+          <div class="pt" data-k="Playback.FaderBar"><span class="no">4</span><span class="nm" style="inset:14px 3px 18px">LED Wall</span><span class="gmbar" data-k="Playback.FaderBarBack"><i style="width:50%"></i><em>50.0%</em></span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">5</span><span class="nm">Stage Perspective</span></div>
+          <div class="pt empty grip" data-k="Global.TextDefault"><span class="no">6</span></div>
+        </div>
+
+        <div class="pool" aria-label="Color preset pool">
+          <div class="ptitle" style="--pc:var(--c-PoolDefault-PresetColor)" data-k="PoolDefault.PresetColor"><span class="malogo"><b>M</b><b>A</b></span><span class="pname">4<small>Color</small></span></div>
+          <div class="pt" data-k="Global.SelectivePreset"><span class="no">1</span><span class="ind" style="color:var(--c-Global-SelectivePreset)">S</span><span class="swatch" style="background:#fff"></span><span class="vbar"><i></i></span></div>
+          <div class="pt" data-k="Global.GlobalPreset"><span class="no">2</span><span class="sub" data-k="SheetColor.PresetText">13</span><span class="ind" style="color:var(--c-Global-GlobalPreset)">G</span><span class="swatch" style="background:#f07020"></span><span class="vbar"><i></i></span></div>
+          <div class="pt" style="box-shadow:inset 0 0 0 2px var(--c-Global-SelectedPreset)" data-k="Global.SelectedPreset"><span class="no">3</span><span class="ind" style="color:var(--c-Global-SelectivePreset)">S</span><span class="swatch" style="background:#7a1fa0"></span><span class="vbar"><i></i></span></div>
+          <div class="pt" style="box-shadow:inset 0 0 0 2px var(--c-Global-PartlySelectedPreset)" data-k="Global.PartlySelectedPreset"><span class="no">4</span><span class="ind" style="color:var(--c-Global-UniversalPreset)" data-k="Global.UniversalPreset">U</span><span class="swatch" style="background:#00a0ff"></span><span class="vbar"><i></i></span></div>
+          <div class="pt empty" data-k="Global.TextDefault"><span class="no">5</span></div>
+          <div class="pt empty grip" data-k="Global.TextDefault"><span class="no">6</span></div>
+        </div>
+
+        <div class="pool" aria-label="Macro and sequence pools">
+          <div class="ptitle" style="--pc:var(--c-PoolDefault-Macro)" data-k="PoolDefault.Macro"><span class="malogo"><b>M</b><b>A</b></span><span class="pname">Macros</span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">1</span><span class="nm">Select EncoderBar</span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">2</span><span class="nm">FS Home</span></div>
+          <div class="ptitle" style="--pc:var(--c-PoolDefault-Sequence)" data-k="PoolDefault.Sequence"><span class="malogo"><b>M</b><b>A</b></span><span class="pname">Sequences</span></div>
+          <div class="pt" data-k="Playback.On"><span class="no">1</span><span class="nm">Look</span><span class="runbar"></span></div>
+          <div class="pt" data-k="Global.ButtonBackground"><span class="no">2</span><span class="nm">Recipe</span></div>
+          <div class="pt empty grip" data-k="Global.TextDefault"><span class="no">3</span></div>
         </div>
 
         <div class="win">
-          <div class="wtitle" data-k="Global.TitleGray">Fixture Sheet</div>
+          <div class="wtitle" data-k="Global.TitleGray"><span class="malogo"><b>M</b><b>A</b></span><span class="tt">Sequence 1 'Look'<small data-k="Global.LabelText">Cue 2 'Chorus'</small></span>
+            <span class="wtools"><span data-k="Global.ButtonBackground">Track Sheet</span><span class="on" data-k="Global.BackgroundSelected">Auto Scroll</span></span></div>
           <div style="overflow-x:auto">
           <table class="sheet">
-            <thead><tr><th data-k="Global.Header" style="width:13%">FID</th><th data-k="Global.AltHeader" style="width:22%">Name</th><th data-k="Global.Header">Dim</th><th data-k="Global.AltHeader">Pan</th><th data-k="Global.Header">Tilt</th><th data-k="Global.AltHeader">Color</th></tr></thead>
+            <thead><tr><th data-k="Global.Header" style="width:10%">No</th><th data-k="Global.AltHeader" style="width:9%">Part</th><th data-k="Global.Header" style="width:30%">Name</th><th data-k="Global.AltHeader">Trig</th><th data-k="Global.Header">Fade</th><th data-k="Global.AltHeader">Delay</th><th data-k="Global.Header">Phaser</th></tr></thead>
             <tbody>
-              <tr><td class="id" data-k="SheetColor.ID">101</td><td data-k="SheetColor.Text">Spot 1</td><td class="abs" data-k="SheetColor.Absolute">100</td><td class="pre" data-k="SheetColor.PresetAbs">P 2.1</td><td class="pre" data-k="SheetColor.PresetText">P 2.1</td><td class="trk" data-k="SheetColor.TextTracked">Red</td></tr>
-              <tr class="selrow"><td class="id" data-k="Global.Selected">102</td><td data-k="Global.SelectedFrameBackground">Spot 2</td><td class="abs" data-k="SheetColor.AbsoluteText">80</td><td class="fade" data-k="SheetColor.Fade">F 2s</td><td class="dly" data-k="SheetColor.Delay">D 0.5</td><td class="pb" data-k="SheetColor.TextPlayback">Amber</td></tr>
-              <tr><td class="id" data-k="SheetColor.IDText">103</td><td data-k="SheetColor.Text">Wash 1</td><td class="phs" data-k="SheetColor.Phaser">Sine</td><td class="rel" data-k="SheetColor.Relative">+10</td><td class="def" data-k="Global.TextDefault">0</td><td class="def" data-k="Global.TextDefault">White</td></tr>
-              <tr><td class="id" data-k="SheetColor.ID">104</td><td data-k="SheetColor.Text">Wash 2</td><td class="def" data-k="Global.TextDefault">0</td><td class="def" data-k="Global.TextDefault">0</td><td class="def" data-k="Global.TextDefault">0</td><td class="def" data-k="Global.TextDefault">White</td></tr>
+              <tr><td class="dim" data-k="Global.TextDefault">0</td><td></td><td class="l dim" data-k="Global.TextDefault">CueZero</td><td></td><td>0</td><td>0</td><td class="dim">None</td></tr>
+              <tr class="cue"><td>1</td><td>0</td><td class="l" data-k="Global.DefaultCellBackground">Intro</td><td>Go</td><td>5</td><td>0</td><td class="dim">None</td></tr>
+              <tr class="cue cur"><td data-k="Global.SelectedRowBorder">2</td><td>0</td><td class="l name" data-k="Global.SelectedFrameBackground">Chorus</td><td>Go</td><td class="fadev" data-k="SheetColor.Fade">3</td><td>0</td><td data-k="Global.Text">Speed5</td></tr>
+              <tr><td></td><td>2</td><td class="l" data-k="Global.DefaultCellAltBackground">Front Wash</td><td></td><td>0</td><td class="dly" data-k="SheetColor.Delay">3</td><td class="dim">None</td></tr>
+              <tr class="cue"><td>3</td><td>0</td><td class="l">Blackout</td><td>Follow</td><td>2</td><td>0</td><td class="dim">None</td></tr>
             </tbody>
           </table>
           </div>
         </div>
 
         <div class="win">
-          <div class="wtitle" data-k="Global.TitleGray">Playbacks</div>
+          <div class="wtitle" data-k="Global.TitleGray"><span class="tt">Playbacks</span><span class="wtools"><span data-k="Global.ButtonBackground">Page 1</span></span></div>
           <div class="execs">
-            <div class="exec" data-k="Global.ButtonBackground"><div class="lbl" data-k="Global.LabelText"><span>201</span><span>Speed 1</span></div><div class="fader" data-k="Playback.FaderBarBack"><i style="height:70%" data-k="Playback.FaderBar"></i><span data-k="Playback.FaderBarText">70%</span></div><div class="nm" data-k="Global.Bright">DimFX</div><div class="leds"><b class="on" data-k="Playback.On"></b><b data-k="Playback.Off"></b></div></div>
-            <div class="exec" data-k="Global.ButtonBackground"><div class="lbl"><span>202</span><span>Speed 2</span></div><div class="fader"><i style="height:45%"></i><span>45%</span></div><div class="nm">PosFX</div><div class="leds"><b class="on"></b><b class="on"></b></div></div>
-            <div class="exec" data-k="Global.ButtonBackground"><div class="lbl"><span>203</span><span>Speed 3</span></div><div class="fader"><i style="height:100%"></i><span>100%</span></div><div class="nm">ColorFX</div><div class="cue" data-k="Playback.ActiveCue">Cue 3 Chase</div></div>
-            <div class="exec fixed" data-k="Global.Fixed"><div class="lbl"><span>204</span><span>Fixed</span></div><div class="fader"><i style="height:20%"></i><span>20%</span></div><div class="nm">Bumps</div><div class="leds"><b class="paused" data-k="Playback.Paused"></b><b></b></div></div>
-            <div class="exec" data-k="Global.ButtonBackground"><div class="lbl"><span>205</span><span>Master</span></div><div class="fader"><i style="height:85%"></i><span>85%</span></div><div class="nm">Grand</div><div class="leds"><b class="on"></b><b></b></div></div>
+            <div class="exec run" data-k="PoolDefault.Sequence">
+              <div class="ehead"><span>201</span><b>Look</b><span>1</span></div>
+              <div class="cues" data-k="Playback.ActiveCue"><div>1 Intro</div><div class="act">2 Chorus</div><div>3 Blackout</div></div>
+              <div class="mst" data-k="SheetColor.TextPlaybackTracked">MST 100%</div>
+              <div class="ebtn"><small>201</small>Go+</div>
+              <div class="efad" data-k="Global.Bright"><small>201</small>Look<br>[Master]<div class="track" data-k="Playback.FaderBar"><i style="height:100%"></i><span>100%</span></div></div>
+            </div>
+            <div class="exec run" data-k="PoolDefault.Sequence">
+              <div class="ehead"><span>202</span><b>DimFX</b><span>2</span></div>
+              <div class="cues"><div class="act">1 Sine</div><div>2 Square</div><div>3 Ramp Up</div></div>
+              <div class="mst">MST 70%</div>
+              <div class="ebtn"><small>202</small>Flash</div>
+              <div class="efad"><small>202</small>DimFX<br>[Master]<div class="track"><i style="height:70%"></i><span>70%</span></div></div>
+            </div>
+            <div class="exec run" data-k="PoolDefault.Sequence">
+              <div class="ehead"><span>203</span><b>PosFX</b><span>3</span></div>
+              <div class="cues"><div>1 Circle</div><div class="act">2 Fan</div><div>3 Tilt Wave</div></div>
+              <div class="mst">MST 45%</div>
+              <div class="ebtn"><small>203</small>Flash</div>
+              <div class="efad"><small>203</small>PosFX<br>[Master]<div class="track"><i style="height:45%"></i><span>45%</span></div></div>
+            </div>
+            <div class="exec run fixed" data-k="Global.Fixed">
+              <div class="ehead"><span>204</span><b>Bumps</b><span>4</span></div>
+              <div class="cues"><div class="act">1 Bump</div></div>
+              <div class="mst">MST 20%</div>
+              <div class="ebtn"><small>204</small>Temp</div>
+              <div class="efad"><small>204</small>Bumps<br>[Fixed]<div class="track"><i style="height:20%"></i><span>20%</span></div></div>
+            </div>
+            <div class="exec idle" data-k="Global.ButtonBackground">
+              <div class="ehead"><span>205</span><b></b><span></span></div>
+              <div class="cues" data-k="Global.Background"></div>
+              <div class="mst" style="visibility:hidden">MST</div>
+              <div class="ebtn"><small>205</small>&nbsp;</div>
+              <div class="efad"><small>205</small>&nbsp;<br>&nbsp;<div class="track" data-k="Global.BackgroundDark"><span style="color:var(--c-Global-TextDefault)">0.0%</span></div></div>
+            </div>
           </div>
         </div>
 
         <div class="cols">
           <div class="win">
-            <div class="wtitle" data-k="Global.TitleGray">Buttons</div>
+            <div class="wtitle" data-k="Global.TitleGray"><span class="tt">Fixture Sheet</span></div>
+            <table class="sheet">
+              <thead><tr><th data-k="Global.Header" style="width:20%">FID</th><th data-k="Global.AltHeader">Dim</th><th data-k="Global.Header">Pan</th><th data-k="Global.AltHeader">Color</th></tr></thead>
+              <tbody>
+                <tr><td class="id" data-k="SheetColor.ID">101</td><td class="abs" data-k="SheetColor.Absolute">100</td><td class="pre" data-k="SheetColor.PresetAbs">P 2.1</td><td class="trk" data-k="SheetColor.TextTracked">Red</td></tr>
+                <tr class="selfix"><td class="id" data-k="Global.Selected">102</td><td class="abs" data-k="SheetColor.AbsoluteText">80</td><td class="rel" data-k="SheetColor.Relative">+10</td><td class="phs" data-k="SheetColor.Phaser">Sine</td></tr>
+                <tr><td class="id" data-k="SheetColor.IDText">103</td><td class="dim" data-k="Global.TextDefault">0</td><td class="fade" data-k="SheetColor.FadeText">F 2s</td><td class="dim">White</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="win">
+            <div class="wtitle" data-k="Global.TitleGray"><span class="tt">Buttons</span></div>
             <div class="bar2">
               <button class="mbtn" type="button" data-k="Global.ButtonBackground">Normal<span class="add" data-k="Global.ButtonAdditionalText">x2</span></button>
               <button class="mbtn on" type="button" data-k="Global.BackgroundSelected">Active</button>
@@ -309,19 +378,10 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
               <span style="color:var(--c-Global-UpdateIndicator)" data-k="Global.UpdateIndicator">Update</span>
             </div>
           </div>
-          <div class="win">
-            <div class="wtitle" data-k="Global.TitleGray">Select Preset</div>
-            <div class="popup">
-              <div data-k="Global.ButtonBackground">Dimmer</div>
-              <div class="sel" data-k="Global.ButtonBackgroundDarker">Color</div>
-              <div data-k="Global.ButtonBackground">Position</div>
-              <div class="emp" data-k="Global.TextDefault">(empty)</div>
-            </div>
-          </div>
         </div>
         <div class="cmd" data-k="Global.BackgroundDark"><span class="p">[Fixture]&gt;</span> Group 2 At Preset 4.2</div>
       </div>
-      <p class="hint">Mock-up of a console screen. It shows the colours, not MA's exact layout.</p>
+      <p class="hint">Modelled on the grandMA3 2.5 pool, sheet and playback windows. Pool objects use the theme's default colours; objects with their own appearance keep theirs on the console.</p>
     </aside>
   </div>
 </div>
@@ -734,12 +794,15 @@ function renderGallery() {
     return `<article class="gcard" data-id="${t.id}">
       <div class="gprev" style="background:${g('Global.BackgroundDark')}">
         <div class="gwin" style="background:${g('Global.Background')};border-color:${g('Global.IndicatorBar')}">
-          <div class="gtitle" style="background:${g('Global.TitleGray')};color:${g('Global.Text')}">Groups</div>
           <div class="gtiles">
+            <span class="gpt" style="background:${g('PoolDefault.Group')};color:${g('Global.Text')};font-weight:bold">Groups</span>
             <span style="background:${g('Global.ButtonBackground')};color:${g('Global.Text')}">Spots</span>
-            <span style="background:${g('Global.ButtonBackground')};color:${g('Global.Selected')};box-shadow:inset 0 0 0 1px ${g('Global.Selected')}">Washes</span>
-            <span style="background:${g('PoolDefault.PresetColor')};color:${g('Global.Text')}">Red</span>
-            <span style="background:${g('PoolDefault.Macro')};color:${g('Global.Text')}">Macro</span>
+            <span style="background:${g('Global.ButtonBackground')};color:${g('Global.Selected')};box-shadow:inset 0 0 0 1px ${g('Global.Selected')}">Wash</span>
+            <span style="background:${g('Global.Background')};color:${g('Global.TextDefault')}">4</span>
+            <span class="gpt" style="background:${g('PoolDefault.PresetColor')};color:${g('Global.Text')};font-weight:bold">Color</span>
+            <span style="background:${g('Global.ButtonBackground')};color:${g('Global.SelectivePreset')};text-align:right">S</span>
+            <span style="background:${g('PoolDefault.Sequence')};color:${g('Global.TextDark')}">Look</span>
+            <span style="background:${g('Playback.ActiveCue')};color:${g('Global.Text')}">Cue 2</span>
           </div>
           <div class="grow"><i style="background:${g('SheetColor.Absolute')};color:${g('SheetColor.AbsoluteText')}">100</i><i style="background:${g('SheetColor.Fade')};color:${g('SheetColor.FadeText')}">2s</i><i style="background:${g('SheetColor.Phaser')};color:${g('SheetColor.PhaserText')}">Sine</i><i style="background:${g('Global.DefaultCellBackground')};color:${g('Global.TextDefault')}">0</i></div>
           <div class="gfader" style="background:${g('Playback.FaderBarBack')}"><b style="background:${g('Playback.FaderBar')}"></b></div>
