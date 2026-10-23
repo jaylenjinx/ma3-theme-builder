@@ -14,18 +14,14 @@
   <header class="top">
     <h1>MA3 Theme Builder<small>Edit a grandMA3 colour theme and watch a console screen update as you go. Click anything on the screen to jump to its colour.</small></h1>
     <div class="actions">
+      <a class="btn ghost" href="gallery.html">Gallery</a>
       <label class="btn ghost" for="fileIn">Load theme.xml</label>
       <input type="file" id="fileIn" accept=".xml,text/xml" hidden>
-            <button class="btn" id="btnReset" type="button">Reset all</button>
+      <button class="btn" id="btnReset" type="button">Reset all</button>
       <button class="btn primary" id="btnExport" type="button">Export</button>
     </div>
   </header>
   <div class="status" id="status" role="status"></div>
-
-  <details class="gallery" id="gallery" open>
-    <summary><h2>Gallery</h2><span>Themes based on popular code editor colour schemes. Edit one or download it as it is.</span></summary>
-    <div class="ggrid" id="galleryGrid"></div>
-  </details>
 
   <div class="grid">
     <section aria-label="Colours">
@@ -43,6 +39,7 @@
           <input type="text" id="fname" value="theme_custom.xml" aria-label="Theme file name">
           <button class="btn primary" id="btnCopy" type="button">Copy XML</button>
           <button class="btn" id="btnSave" type="button">Download .xml</button>
+          <button class="btn" id="btnShare" type="button">Share to gallery</button>
         </div>
         <p class="tabNote">Save it in <code>gma3_library/colorthemes</code> on the console or your Mac, then import it from the Color Theme menu.</p>
         <textarea id="xmlOut" readonly aria-label="Theme XML"></textarea>
@@ -187,6 +184,7 @@
   </footer>
 </div>
 
+<script src="core.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

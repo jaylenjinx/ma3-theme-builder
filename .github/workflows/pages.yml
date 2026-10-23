@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # The gallery workflow calls this after it commits a new theme (its push can't trigger this file).
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: main
 
 permissions:
   contents: read
@@ -22,13 +28,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: Check theme.xml is valid XML
         run: python3 -c "import xml.dom.minidom as m; m.parse('theme.xml')"
+      - name: Check gallery/themes.json is valid JSON
+        run: python3 -c "import json; json.load(open('gallery/themes.json'))"
       - name: Collect site files
         run: |
           mkdir _site
-          cp index.html main.css main.js theme.xml _site/
-          cp -r images _site/
+          cp index.html gallery.html main.css core.js main.js gallery.js theme.xml _site/
+          cp -r images gallery _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

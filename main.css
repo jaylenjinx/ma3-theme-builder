@@ -24,6 +24,8 @@ h1 small { display: block; font-family: var(--f-body); font-weight: 400; font-si
 .btn:hover { border-color: #44464f; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 .btn.ghost { background: transparent; }
+a.btn { color: var(--fg); text-decoration: none; display: inline-block; }
+a.btn.primary { color: var(--accent-ink); }
 .status { font-size: 12px; color: var(--muted); min-height: 1.4em; }
 
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; margin-top: 16px; align-items: start; }
@@ -73,14 +75,27 @@ details.used span { font-family: var(--f-mono); font-size: 11px; background: var
 .empty { background: var(--panel); padding: 20px; color: var(--muted); }
 @media (max-width: 520px) { .row { grid-template-columns: 40px minmax(0, 1fr); } .vals { grid-column: 2; justify-items: start; grid-auto-flow: column; align-items: center; } .sw { width: 40px; height: 40px; } }
 
-/* ---------- gallery ---------- */
-.gallery { margin-top: 16px; }
-.gallery summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; cursor: pointer; list-style: none; }
-.gallery summary::-webkit-details-marker { display: none; }
-.gallery summary h2 { font-family: var(--f-display); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; }
-.gallery summary h2::before { content: "\25BE"; display: inline-block; margin-right: 6px; transition: transform .15s; }
-.gallery:not([open]) summary h2::before { transform: rotate(-90deg); }
-.gallery summary span { font-size: 12.5px; color: var(--muted); }
+/* ---------- gallery page (cards are shared with nothing else, but kept here so both pages use one stylesheet) ---------- */
+.gtools { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 16px; }
+.gtools .search { flex: 1 1 220px; width: auto; }
+.gsect { margin-top: 22px; }
+.gsect > h2 { font-family: var(--f-display); font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; display: flex; align-items: baseline; gap: 8px; }
+.gsect > h2 .n { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0; }
+.gsect > p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+.gby { font-size: 11.5px; color: var(--muted); }
+.gdesc { margin: 4px 0 0; font-size: 12px; color: #b4b5bd; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+.gempty { grid-column: 1 / -1; border: 1px dashed var(--line); border-radius: 6px; padding: 22px 18px; color: var(--muted); display: grid; gap: 10px; justify-items: start; }
+.gempty strong { color: var(--fg); font-size: 15px; }
+.gempty p { margin: 0; max-width: 60ch; }
+.share { margin-top: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
+.share h2 { font-family: var(--f-display); font-size: 18px; margin: 0 0 4px; }
+.share > p { margin: 0; color: var(--muted); max-width: 70ch; }
+.steps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; counter-reset: st; }
+.steps li { counter-increment: st; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px 12px; font-size: 13px; color: #b4b5bd; }
+.steps li::before { content: counter(st); display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+.steps b { display: block; color: var(--fg); margin-bottom: 2px; }
+.share code, .steps code { font-family: var(--f-mono); font-size: 12px; }
 .ggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 10px; }
 .gcard { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; min-width: 0; }
 .gprev { padding: 8px; font-family: Arial, Helvetica, sans-serif; font-size: 9.5px; }

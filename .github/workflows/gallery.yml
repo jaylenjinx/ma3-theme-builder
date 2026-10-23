@@ -1,0 +1,80 @@
+name: Gallery submissions
+
+# A "Submit a theme" issue is checked when it's opened or edited. When the repo owner adds the
+# "approved" label, the theme is added to gallery/themes.json and the site is redeployed.
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: gallery
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  NUMBER: ${{ github.event.issue.number }}
+
+jobs:
+  check:
+    if: github.event.action != 'labeled' && contains(github.event.issue.body, '### Theme code')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Make sure the labels exist
+        run: |
+          gh label create theme-submission --color 1D76DB --description "A theme submitted to the gallery" --force
+          gh label create approved --color 0E8A16 --description "Add this theme to the gallery" --force
+          gh issue edit "$NUMBER" --add-label theme-submission
+      - name: Check the submission
+        run: node scripts/gallery-submission.cjs check
+      - name: Reply
+        run: gh issue comment "$NUMBER" --body-file comment.md
+
+  add:
+    if: >-
+      github.event.action == 'labeled' && github.event.label.name == 'approved' &&
+      github.event.sender.login == github.repository_owner &&
+      contains(github.event.issue.body, '### Theme code')
+    runs-on: ubuntu-latest
+    outputs:
+      added: ${{ steps.add.outputs.added }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Add the theme
+        id: add
+        run: node scripts/gallery-submission.cjs add
+      - name: Commit
+        if: steps.add.outputs.added == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gallery/themes.json
+          git commit -m "Add community theme from #$NUMBER"
+          git push origin HEAD:main
+      - name: Reply
+        run: gh issue comment "$NUMBER" --body-file comment.md
+      - name: Close
+        if: steps.add.outputs.added == 'true'
+        run: gh issue close "$NUMBER" --reason completed
+
+  deploy:
+    needs: add
+    if: needs.add.outputs.added == 'true'
+    uses: ./.github/workflows/pages.yml
+    with:
+      ref: main

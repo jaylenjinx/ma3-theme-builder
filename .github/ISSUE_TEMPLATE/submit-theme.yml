@@ -1,0 +1,43 @@
+name: Submit a theme
+description: Add your theme to the community gallery. The editor's Share to gallery button fills this in for you.
+title: "Theme: "
+labels: [theme-submission]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing a theme. A bot checks the code below and replies with a preview link. Once the theme is approved it appears in the [gallery](https://themes.sulfurdesign.com/gallery.html) within a few minutes.
+  - type: input
+    id: theme-name
+    attributes:
+      label: Theme name
+      description: Shown on the gallery card. Up to 40 characters.
+      placeholder: Ember
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: Your name
+      description: Shown as "by ..." on the card. Leave it empty to use your GitHub username.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: One or two lines about the theme. Up to 200 characters.
+      placeholder: Warm amber accents on near-black, easy on the eyes in a dark room.
+  - type: textarea
+    id: code
+    attributes:
+      label: Theme code
+      description: Filled in by the editor. It starts with MA3T1-. Please don't edit it.
+      render: text
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Sharing
+      options:
+        - label: I made this theme (or have the right to share it), and I'm happy for anyone to use and change it.
+          required: true

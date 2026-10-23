@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MA3 Theme Gallery</title>
+<meta name="description" content="grandMA3 colour themes shared by the community, plus themes based on popular code editor colour schemes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Roboto+Condensed:wght@400;700&family=JetBrains+Mono:wght@400;500&family=Saira+Semi+Condensed:wght@500;700&display=swap">
+<link rel="stylesheet" href="main.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>MA3 Theme Gallery<small>Colour themes for grandMA3. Open one in the editor to fine-tune it, or download it as it is.</small></h1>
+    <div class="actions">
+      <a class="btn ghost" href="index.html">Open the editor</a>
+      <a class="btn primary" href="#share">Share your theme</a>
+    </div>
+  </header>
+  <div class="status" id="status" role="status"></div>
+
+  <div class="gtools">
+    <div class="tabs" role="tablist" id="filters">
+      <button class="tab" role="tab" type="button" data-f="all" aria-selected="true">All</button>
+      <button class="tab" role="tab" type="button" data-f="community" aria-selected="false">Community <span class="n" id="nCommunity">0</span></button>
+      <button class="tab" role="tab" type="button" data-f="builtin" aria-selected="false">Built-in <span class="n" id="nBuiltin">0</span></button>
+    </div>
+    <input class="search" id="search" type="search" placeholder="Search themes, e.g. dracula, light, warm" aria-label="Search themes">
+  </div>
+
+  <section class="gsect" id="secCommunity" aria-labelledby="hCommunity">
+    <h2 id="hCommunity">Community</h2>
+    <p>Themes people built in the editor and shared here.</p>
+    <div class="ggrid" id="gridCommunity"></div>
+  </section>
+
+  <section class="gsect" id="secBuiltin" aria-labelledby="hBuiltin">
+    <h2 id="hBuiltin">Built-in</h2>
+    <p>The bundled MA theme, a darker Night version, and themes based on popular code editor colour schemes.</p>
+    <div class="ggrid" id="gridBuiltin"></div>
+  </section>
+
+  <section class="share" id="share" aria-labelledby="hShare">
+    <h2 id="hShare">Share your theme</h2>
+    <p>Anyone can add a theme. Submissions go through a short form on GitHub and appear here once they're approved.</p>
+    <ol class="steps">
+      <li><b>Build it</b>Start from any theme in the <a href="index.html" style="color:var(--accent)">editor</a> and change the colours until it looks right on the live screen.</li>
+      <li><b>Press Share to gallery</b>It's under Export. GitHub opens with your theme already filled in as a short code. Add a name and a line about it, then submit. You need a free GitHub account.</li>
+      <li><b>Wait for approval</b>Each theme is checked before it goes live. Once it's approved it shows up under Community within a few minutes.</li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    <a href="https://github.com/jaylenjinx/ma3-theme-builder">Source on GitHub</a>
+    <span>Not affiliated with MA Lighting. grandMA3 is a trademark of MA Lighting Technology GmbH.</span>
+  </footer>
+</div>
+
+<script src="core.js"></script>
+<script src="gallery.js"></script>
+</body>
+</html>
