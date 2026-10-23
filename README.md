@@ -12,7 +12,7 @@ A browser tool for editing grandMA3 colour themes. Pick colours, read what each 
 - Lists every shared colour (Global, Sheets, Playback, Pools) with a colour picker, hex box, opacity slider and a short note on where it shows up, plus which screen elements use it.
 - Lists the element colours that aren't linked to a shared colour, for fine control.
 - A live screen with pools, a fixture sheet, executors, buttons and the command line. Click anything on it to jump to its colour.
-- A gallery of ready-made themes based on popular code editor colour schemes (Dracula, One Dark, Monokai, VS Code Dark+, GitHub, Nord, Gruvbox, Solarized, Tokyo Night, Catppuccin, Night Owl, Ayu, Rosé Pine) plus a darker Night version of the loaded theme. Edit any of them or download it straight away.
+- A separate gallery page (`gallery.html`) with community themes and built-in ones based on popular code editor colour schemes (Dracula, One Dark, Monokai, VS Code Dark+, GitHub, Nord, Gruvbox, Solarized, Tokyo Night, Catppuccin, Night Owl, Ayu, Rosé Pine) plus a darker Night version of the bundled theme. Edit any of them or download it straight away.
 - Master dimmer and saturation sliders, and a hold-to-compare button.
 - Exports the theme with the original file's structure untouched, so it imports straight back into MA3. Exporting with no changes gives back the original file byte for byte.
 
@@ -22,11 +22,21 @@ Edits are kept in your browser between visits.
 
 Save the exported `.xml` into `gma3_library/colorthemes` (on a USB stick for a console, or in the MA library folder on onPC), then import it from the Color Theme menu.
 
+## Sharing themes to the gallery
+
+**Share to gallery** (under Export) opens a prefilled "Submit a theme" issue on GitHub. The theme travels as a short code (`MA3T1-...`, about 2.4k characters) holding every colour of the bundled theme.
+
+`.github/workflows/gallery.yml` checks each submission and replies with a preview link. When the repo owner adds the `approved` label, it adds the theme to `gallery/themes.json`, closes the issue and redeploys the site. Removing a theme is a normal edit to `gallery/themes.json`.
+
 ## Files
 
-- `index.html`: page layout and the live screen markup
-- `main.css`: styles
-- `main.js`: theme parsing, editor, gallery schemes and export
+- `index.html`: editor layout and the live screen markup
+- `gallery.html`, `gallery.js`: the gallery page
+- `main.css`: styles for both pages
+- `core.js`: theme parsing and export, gallery schemes and share codes, shared by both pages and the gallery workflow
+- `main.js`: the editor
+- `gallery/themes.json`: approved community themes
+- `scripts/gallery-submission.cjs`: checks and adds submissions (run by the gallery workflow)
 - `theme.xml`: the bundled starting theme
 
 ## Running locally
