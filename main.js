@@ -333,7 +333,11 @@ async function fromLink() {
   try {
     if (q.get('scheme')) {
       const t = MA3.BUILTINS.find(x => x.id === q.get('scheme')); if (!t) throw new Error('That gallery theme no longer exists.');
-      vals = MA3.valsFrom(base, t.fn); fname = t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`; name = t.name;
+      if (t.file) {
+        const r = await fetch(t.file); if (!r.ok) throw new Error('Could not load ' + t.name + '.');
+        vals = MA3.valsFromTheme(base, MA3.parseTheme(await r.text()));
+      } else vals = MA3.valsFrom(base, t.fn);
+      fname = t.file ? t.file.split('/').pop() : t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`; name = t.name;
     } else if (q.get('theme')) {
       const r = await fetch('gallery/themes.json', {cache: 'no-cache'}); if (!r.ok) throw new Error('Could not load the community gallery.');
       const t = (await r.json()).find(x => x.id === q.get('theme')); if (!t) throw new Error('That community theme no longer exists.');

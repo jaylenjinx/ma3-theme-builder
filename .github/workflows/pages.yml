@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html gallery.html main.css core.js main.js gallery.js theme.xml _site/
-          cp -r images gallery _site/
+          cp -r images gallery themes _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

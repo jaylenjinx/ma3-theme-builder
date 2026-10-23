@@ -19,7 +19,7 @@ function parseTheme(text) {
   const src = text.replace(/^﻿/, '');
   const split = src.indexOf('<ColorGroups>');
   if (!/<ColorTheme/.test(src) || split < 0) throw new Error('This file is not a grandMA3 colour theme (no ColorTheme / ColorGroups found).');
-  const defs = [], elems = [], defMap = {}, usedBy = {};
+  const defs = [], elems = [], defMap = {}, usedBy = {}, refs = {};
   let g = '';
   src.slice(0, split).replace(/<ColorDefGroup Name="([^"]+)">|<ColorDef Name="([^"]+)"\s+RGBA="([0-9A-Fa-f]{8})"/g, (m, grp, n, rgba) => {
     if (grp) g = grp; else { const d = {g, n, key: g+'.'+n, orig: rgba.toUpperCase()}; defs.push(d); defMap[d.key] = d; }
@@ -29,12 +29,13 @@ function parseTheme(text) {
     if (grp) { g = grp; return m; }
     const ref = (attrs.match(/ColorDefRef="([^"]+)"/) || [])[1];
     const rgba = (attrs.match(/RGBA="([0-9A-Fa-f]{8})"/) || [])[1];
+    if (ref) refs['el:'+g+'.'+n] = ref;
     if (ref && defMap[ref]) (usedBy[ref] = usedBy[ref] || []).push(g + ' › ' + n);
     else if (!ref && rgba) elems.push({g, n, key: 'el:'+g+'.'+n, orig: rgba.toUpperCase()});
     return m;
   });
   for (const d of elems) defMap[d.key] = d;
-  return {src, defs, elems, all: [...defs, ...elems], defMap, usedBy};
+  return {src, defs, elems, all: [...defs, ...elems], defMap, usedBy, refs};
 }
 
 // get(key) returns the RGBA hex to write for a shared colour or element colour.
@@ -105,9 +106,21 @@ function schemeHex(sc, key, orig) {
 const BUILTINS = [
   {id:'default', name:'MA default', note:'The bundled theme, unchanged', fn:(k, o) => o},
   {id:'night', name:'Night', note:'Default theme, darker and dimmer', fn:(k, o) => mapHex(o, nightFn)},
+  // MA's own themes, shipped as files. Edit maps them onto the base theme; .xml downloads the file as it is.
+  {id:'legacy', name:'MA Legacy', note:'grandMA3 default_legacy theme', file:'themes/default_legacy.xml'},
+  {id:'daylight', name:'MA Daylight', note:'grandMA3 default_daylight theme', file:'themes/default_daylight.xml'},
   ...SCHEMES.map(sc => ({id: sc.id, name: sc.name, note: sc.light ? 'Light editor scheme' : 'Dark editor scheme', fn: (k, o) => schemeHex(sc, k, o)}))
 ];
 function valsFrom(model, fn) { const out = {}; for (const d of model.all) out[d.key] = fn(d.key, d.orig); return out; }
+// Another theme file's colours on the base theme's keys. An element the other file links to a
+// shared colour takes that colour; anything the other file doesn't set keeps the base colour.
+function valsFromTheme(model, other) {
+  const shared = k => other.defMap[k] && !k.startsWith('el:') ? other.defMap[k].orig : null;
+  return valsFrom(model, (k, o) => {
+    if (!k.startsWith('el:')) return shared(k) || o;
+    return (other.defMap[k] && other.defMap[k].orig) || (other.refs[k] && shared(other.refs[k])) || o;
+  });
+}
 
 /* ---------- share codes ---------- */
 // "MA3T1-" + base64url of: 2-byte fingerprint of the base theme's colour keys, then 4 RGBA bytes
@@ -177,7 +190,7 @@ function submitUrl(name, code) {
   return SUBMIT_URL + '?' + q.toString();
 }
 
-const API = {clamp, hx, parse, rgb2hsv, hsv2rgb, mapHex, nightFn, css, esc, parseTheme, buildXml, SCHEMES, schemeHex, BUILTINS, valsFrom,
+const API = {clamp, hx, parse, rgb2hsv, hsv2rgb, mapHex, nightFn, css, esc, parseTheme, buildXml, SCHEMES, schemeHex, BUILTINS, valsFrom, valsFromTheme,
   CODE_PREFIX, packCode, unpackCode, slug, previewHtml, submitUrl};
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.MA3 = API;
 })(typeof self !== 'undefined' ? self : this);

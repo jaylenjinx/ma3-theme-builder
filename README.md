@@ -12,7 +12,7 @@ A browser tool for editing grandMA3 colour themes. Pick colours, read what each 
 - Lists every shared colour (Global, Sheets, Playback, Pools) with a colour picker, hex box, opacity slider and a short note on where it shows up, plus which screen elements use it.
 - Lists the element colours that aren't linked to a shared colour, for fine control.
 - A live screen with pools, a fixture sheet, executors, buttons and the command line. Click anything on it to jump to its colour.
-- A separate gallery page (`gallery.html`) with community themes and built-in ones based on popular code editor colour schemes (Dracula, One Dark, Monokai, VS Code Dark+, GitHub, Nord, Gruvbox, Solarized, Tokyo Night, Catppuccin, Night Owl, Ayu, Rosé Pine) plus a darker Night version of the bundled theme. Edit any of them or download it straight away.
+- A separate gallery page (`gallery.html`) with community themes and built-in ones based on popular code editor colour schemes (Dracula, One Dark, Monokai, VS Code Dark+, GitHub, Nord, Gruvbox, Solarized, Tokyo Night, Catppuccin, Night Owl, Ayu, Rosé Pine) plus MA's Legacy and Daylight themes and a darker Night version of the bundled theme. Edit any of them or download it straight away.
 - Master dimmer and saturation sliders, and a hold-to-compare button.
 - Exports the theme with the original file's structure untouched, so it imports straight back into MA3. Exporting with no changes gives back the original file byte for byte.
 
@@ -36,6 +36,7 @@ Save the exported `.xml` into `gma3_library/colorthemes` (on a USB stick for a c
 - `core.js`: theme parsing and export, gallery schemes and share codes, shared by both pages and the gallery workflow
 - `main.js`: the editor
 - `gallery/themes.json`: approved community themes
+- `themes/`: MA's own Legacy and Daylight themes, shown in the gallery and downloaded as they are
 - `scripts/gallery-submission.cjs`: checks and adds submissions (run by the gallery workflow)
 - `theme.xml`: the bundled starting theme
 

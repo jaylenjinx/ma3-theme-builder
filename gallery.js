@@ -5,6 +5,11 @@ const say = t => { $('#status').textContent = t; };
 const {esc} = MA3;
 let model = null, items = [], filter = 'all';
 
+async function builtinVals(t) {
+  if (!t.file) return MA3.valsFrom(model, t.fn);
+  const r = await fetch(t.file); if (!r.ok) throw new Error('Could not load ' + t.file);
+  return MA3.valsFromTheme(model, MA3.parseTheme(await r.text()));
+}
 function card(t) {
   const edit = t.kind === 'community' ? `index.html?theme=${encodeURIComponent(t.id)}` : `index.html?scheme=${encodeURIComponent(t.id)}`;
   return `<article class="gcard" data-id="${esc(t.kind + ':' + t.id)}">
@@ -36,17 +41,22 @@ $('#search').addEventListener('input', render);
 document.addEventListener('click', e => {
   const b = e.target.closest('button[data-act="dl"]'); if (!b) return;
   const t = items.find(x => x.kind + ':' + x.id === b.closest('.gcard').dataset.id);
-  const fname = t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`;
-  const url = URL.createObjectURL(new Blob([MA3.buildXml(model, k => t.vals[k], fname)], {type: 'application/xml'}));
+  // MA's own themes download as the original file.
+  const fname = t.file ? t.file.split('/').pop() : t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`;
+  const url = t.file || URL.createObjectURL(new Blob([MA3.buildXml(model, k => t.vals[k], fname)], {type: 'application/xml'}));
   const a = document.createElement('a'); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  if (!t.file) setTimeout(() => URL.revokeObjectURL(url), 1000);
   say(`Downloaded ${fname}. Put it in gma3_library/colorthemes and import it from the Color Theme menu.`);
 });
 
 (async () => {
   try { const r = await fetch('theme.xml'); if (!r.ok) throw 0; model = MA3.parseTheme(await r.text()); }
   catch { say('Could not load the bundled theme.xml. Serve this folder over http to see the gallery.'); return; }
-  items = MA3.BUILTINS.map(t => ({kind: 'builtin', id: t.id, name: t.name, note: t.note, vals: MA3.valsFrom(model, t.fn)}));
+  items = [];
+  for (const t of MA3.BUILTINS) {
+    try { items.push({kind: 'builtin', id: t.id, name: t.name, note: t.note, file: t.file, vals: await builtinVals(t)}); }
+    catch (err) { console.warn('Skipped built-in theme', t.id, err.message); }
+  }
   try {
     const r = await fetch('gallery/themes.json', {cache: 'no-cache'}); if (!r.ok) throw 0;
     const list = await r.json(), com = [];
