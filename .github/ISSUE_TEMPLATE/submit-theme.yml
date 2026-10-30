@@ -30,7 +30,7 @@ body:
     id: code
     attributes:
       label: Theme code
-      description: Filled in by the editor. It starts with MA3T1-. Please don't edit it.
+      description: Filled in by the editor. It starts with MA3T. Please don't edit it.
       render: text
     validations:
       required: true

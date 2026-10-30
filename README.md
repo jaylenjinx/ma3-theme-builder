@@ -10,9 +10,9 @@ A browser tool for editing grandMA3 colour themes. Pick colours, read what each 
 
 - Loads a grandMA3 `ColorTheme` XML (a dark theme exported from MA 2.5.1 is bundled as `theme.xml`).
 - Lists every shared colour (Global, Sheets, Playback, Pools) with a colour picker, hex box, opacity slider and a short note on where it shows up, plus which screen elements use it.
-- Lists the element colours that aren't linked to a shared colour, for fine control.
+- Lists every screen element with a **Colour from** menu, so any element can use a different shared colour or its own colour.
 - A live screen with pools, a fixture sheet, executors, buttons and the command line. Click anything on it to jump to its colour.
-- A separate gallery page (`gallery.html`) with community themes and built-in ones based on popular code editor colour schemes (Dracula, One Dark, Monokai, VS Code Dark+, GitHub, Nord, Gruvbox, Solarized, Tokyo Night, Catppuccin, Night Owl, Ayu, Rosé Pine) plus MA's Legacy and Daylight themes and a darker Night version of the bundled theme. Edit any of them or download it straight away.
+- A separate gallery page (`gallery.html`) with community themes and 58 built-in ones: MA's own themes (default, Night, Legacy, Daylight), 37 code editor schemes (Dracula, Nord, Gruvbox, Catppuccin, Kanagawa, Everforest, SynthWave '84 and more) and 17 palettes made for the desk (Tungsten, Congo Blue, Red Night, High Contrast and more). Edit any of them or download it straight away.
 - Master dimmer and saturation sliders, and a hold-to-compare button.
 - Exports the theme with the original file's structure untouched, so it imports straight back into MA3. Exporting with no changes gives back the original file byte for byte.
 
@@ -24,7 +24,7 @@ Save the exported `.xml` into `gma3_library/colorthemes` (on a USB stick for a c
 
 ## Sharing themes to the gallery
 
-**Share to gallery** (under Export) opens a prefilled "Submit a theme" issue on GitHub. The theme travels as a short code (`MA3T1-...`, about 2.4k characters) holding every colour of the bundled theme.
+**Share to gallery** (under Export) opens a prefilled "Submit a theme" issue on GitHub. The theme travels as a short code (`MA3T1-...` or `MA3T2-...`, about 2.4k characters) holding every colour of the bundled theme, plus any elements moved to a different shared colour.
 
 `.github/workflows/gallery.yml` checks each submission and replies with a preview link. When the repo owner adds the `approved` label, it adds the theme to `gallery/themes.json`, closes the issue and redeploys the site. Removing a theme is a normal edit to `gallery/themes.json`.
 
