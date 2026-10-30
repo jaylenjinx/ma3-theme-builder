@@ -181,15 +181,26 @@ function master(h) {
   if (state.dim === 100 && state.sat === 100) return h.toUpperCase();
   return mapHex(h, (s, v) => [s*state.sat/100, v*state.dim/100]);
 }
-let model = null, base = null, SRC = '', defs = [], defMap = {}, elems = [], usedBy = {};
-const state = { vals: {}, dim: 100, sat: 100 };
+let model = null, base = null, SRC = '', defs = [], defMap = {}, elems = [], links = [], linkMap = {};
+const state = { vals: {}, links: {}, dim: 100, sat: 100 };
 function load(text) {
   model = MA3.parseTheme(text);
-  ({src: SRC, defs, defMap, elems, usedBy} = model);
-  state.vals = {};
+  ({src: SRC, defs, defMap, elems, links, linkMap} = model);
+  state.vals = {}; state.links = {}; linkOpts = '';
 }
-const val = k => state.vals[k] || defMap[k].orig;
-const buildXml = (get = k => master(val(k)), fname = $('#fname').value) => MA3.buildXml(model, get, fname);
+const origOf = k => (defMap[k] || linkMap[k] || {}).orig || null;
+const val = k => state.vals[k] || origOf(k) || '00000000';
+// The shared colour an element uses now ('' = its own colour).
+const linkOf = k => k in state.links ? state.links[k] : (linkMap[k].ref || '');
+const linkChanged = k => k in state.links;
+function usedByNow() {
+  const out = {};
+  for (const l of links) { const r = linkOf(l.key); if (r) (out[r] = out[r] || []).push(l.g + ' › ' + l.n); }
+  return out;
+}
+const isChanged = k => !!state.vals[k] || linkChanged(k);
+const isDirty = () => Object.keys(state.vals).length + Object.keys(state.links).length > 0;
+const buildXml = (get = k => master(val(k)), fname = $('#fname').value) => MA3.buildXml(model, get, fname, state.links);
 
 /* ---------- demo ---------- */
 const screen = $('#screen');
@@ -204,65 +215,83 @@ const TABS = [
   {id:'SheetColor', label:'Sheets', note:'Value colours in the fixture, sequence and DMX sheets: absolute, relative, fades, delays, tracking.'},
   {id:'Playback', label:'Playback', note:'Executor fader bars, cue highlight and run-state indicators.'},
   {id:'PoolDefault', label:'Pools', note:'Default colours of pool objects and their window titles.'},
-  {id:'el', label:'Elements', note:'Colours fixed to a single element instead of a shared colour. Change these for fine control.'},
+  {id:'el', label:'Elements', note:'Every part of the screen. Each one takes a shared colour or has its own: change that with its Colour from menu.'},
   {id:'changed', label:'Changed', note:'Everything you have changed from the loaded theme.'}
 ];
 let tab = 'Global';
 function itemsFor(t) {
-  if (t === 'el') return elems;
-  if (t === 'changed') return [...defs, ...elems].filter(d => state.vals[d.key] && state.vals[d.key] !== d.orig);
+  if (t === 'el') return links.filter(l => !l.fixed);
+  if (t === 'changed') return [...defs, ...links.filter(l => !l.fixed)].filter(d => isChanged(d.key));
   return defs.filter(d => d.g === t);
 }
 function renderTabs() {
   $('#tabs').innerHTML = TABS.map(t => `<button class="tab" role="tab" type="button" data-t="${t.id}" aria-selected="${t.id===tab}">${t.label}<span class="n">${itemsFor(t.id).length}</span></button>`).join('');
   $('#tabNote').textContent = TABS.find(t => t.id === tab).note;
 }
-function rowHtml(d) {
-  const v = val(d.key), changed = v !== d.orig, a = parse(v).a;
+let linkOpts = '';
+// Options for the Colour from menu, built once per theme and only when a menu is opened.
+function linkOptions() {
+  if (linkOpts) return linkOpts;
+  let html = '<option value="">Own colour</option>', g = '';
+  for (const d of defs) {
+    if (d.g !== g) { html += (g ? '</optgroup>' : '') + `<optgroup label="${esc(d.g === 'SheetColor' ? 'Sheet' : d.g)}">`; g = d.g; }
+    html += `<option value="${esc(d.key)}">${esc(human(d.n))}</option>`;
+  }
+  return (linkOpts = html + '</optgroup>');
+}
+const linkLabel = r => r ? `${defMap[r].g === 'SheetColor' ? 'Sheet' : defMap[r].g} › ${human(defMap[r].n)}` : 'Own colour';
+function rowHtml(d, used) {
   const isEl = d.key.startsWith('el:');
-  const desc = isEl ? `Fixed colour for ${human(d.n).toLowerCase()} in the ${human(d.g)} area. Only this element uses it.` : describe(d);
-  const used = usedBy[d.key] || [];
-  return `<div class="row" id="row-${esc(d.key)}" data-key="${esc(d.key)}">
-    <label class="sw" title="Pick colour"><i style="background:${css(v)}"></i><input type="color" value="#${v.slice(0,6)}" aria-label="${esc(d.n)} colour"></label>
+  const ref = isEl ? linkOf(d.key) : '';
+  const v = ref ? val(ref) : val(d.key), changed = isChanged(d.key), a = parse(v).a;
+  const locked = isEl && !!(ref || !(state.vals[d.key] || origOf(d.key)));
+  const desc = !isEl ? describe(d) : ref ? `Uses the shared colour ${linkLabel(ref)}. Change that to recolour everything that uses it, or choose Own colour to set this one alone.`
+    : (state.vals[d.key] || origOf(d.key)) ? `Has its own colour for ${human(d.n).toLowerCase()} in the ${human(d.g)} area.` : `Uses MA's built-in colour. Pick a shared colour to set it.`;
+  const u = used[d.key] || [];
+  const dis = locked ? ' disabled' : '';
+  return `<div class="row${locked ? ' linked' : ''}" id="row-${esc(d.key)}" data-key="${esc(d.key)}">
+    <label class="sw" title="${locked ? 'Uses a shared colour' : 'Pick colour'}"><i style="background:${css(v)}"></i><input type="color" value="#${v.slice(0,6)}" aria-label="${esc(d.n)} colour"${dis}></label>
     <div class="meta"><div class="nm">${changed?'<span class="dot" title="Changed"></span>':''}${esc(human(d.n))}<span class="g">${esc(isEl ? d.g : d.g === 'SheetColor' ? 'Sheet' : d.g)}</span></div>
       <p class="desc">${esc(desc)}</p>
-      ${used.length ? `<details class="used"><summary>Used by ${used.length} element${used.length>1?'s':''}</summary><div>${used.map(u=>`<span>${esc(u)}</span>`).join('')}</div></details>` : ''}
+      ${isEl ? `<label class="lnk">Colour from <select aria-label="${esc(d.n)}: colour from"><option value="${esc(ref)}" selected>${esc(linkLabel(ref))}</option></select></label>` : ''}
+      ${u.length ? `<details class="used"><summary>Used by ${u.length} element${u.length>1?'s':''}</summary><div>${u.map(x=>`<span>${esc(x)}</span>`).join('')}</div></details>` : ''}
     </div>
-    <div class="vals"><input class="hex" value="${v}" maxlength="8" spellcheck="false" aria-label="${esc(d.n)} RGBA hex">
-      <span class="alpha">A<input type="range" min="0" max="255" value="${a}" aria-label="${esc(d.n)} opacity"><output>${Math.round(a/2.55)}%</output></span>
+    <div class="vals"><input class="hex" value="${v}" maxlength="8" spellcheck="false" aria-label="${esc(d.n)} RGBA hex"${dis}>
+      <span class="alpha">A<input type="range" min="0" max="255" value="${a}" aria-label="${esc(d.n)} opacity"${dis}><output>${Math.round(a/2.55)}%</output></span>
       <button class="reset" type="button" ${changed?'':'hidden'}>Reset</button></div>
   </div>`;
 }
 function renderList() {
   renderTabs();
   const q = $('#search').value.trim().toLowerCase();
-  let items = q ? [...defs, ...elems] : itemsFor(tab);
-  if (q) items = items.filter(d => (d.key + ' ' + human(d.n) + ' ' + (d.key.startsWith('el:') ? '' : describe(d)) + ' ' + (usedBy[d.key]||[]).join(' ')).toLowerCase().includes(q));
+  const used = usedByNow();
+  let items = q ? [...defs, ...links.filter(l => !l.fixed)] : itemsFor(tab);
+  if (q) items = items.filter(d => (d.key + ' ' + human(d.n) + ' ' + (d.key.startsWith('el:') ? linkOf(d.key) : describe(d)) + ' ' + (used[d.key]||[]).join(' ')).toLowerCase().includes(q));
   let html = '', lastG = null;
   for (const d of items) {
     if ((tab === 'el' || q || tab === 'changed') && d.g !== lastG) { html += `<div class="sect">${esc(human(d.g))}</div>`; lastG = d.g; }
-    html += rowHtml(d);
+    html += rowHtml(d, used);
   }
   $('#list').innerHTML = html || `<div class="empty">${tab==='changed' && !q ? 'Nothing changed yet. Pick a colour in any tab, or click something on the live screen.' : 'No colours match that search.'}</div>`;
 }
 function setVal(key, hex, rowEl) {
   hex = hex.toUpperCase();
-  if (hex === defMap[key].orig) delete state.vals[key]; else state.vals[key] = hex;
+  if (hex === origOf(key)) delete state.vals[key]; else state.vals[key] = hex;
   if (rowEl) {
     rowEl.querySelector('.sw i').style.background = css(hex);
     rowEl.querySelector('input[type=color]').value = '#' + hex.slice(0,6);
     const hexIn = rowEl.querySelector('.hex'); if (document.activeElement !== hexIn) hexIn.value = hex;
     rowEl.querySelector('input[type=range]').value = parse(hex).a;
     rowEl.querySelector('output').textContent = Math.round(parse(hex).a/2.55) + '%';
-    rowEl.querySelector('.reset').hidden = !state.vals[key];
+    rowEl.querySelector('.reset').hidden = !isChanged(key);
     const nm = rowEl.querySelector('.nm'), dot = nm.querySelector('.dot');
-    if (state.vals[key] && !dot) nm.insertAdjacentHTML('afterbegin','<span class="dot" title="Changed"></span>'); else if (!state.vals[key] && dot) dot.remove();
+    if (isChanged(key) && !dot) nm.insertAdjacentHTML('afterbegin','<span class="dot" title="Changed"></span>'); else if (!isChanged(key) && dot) dot.remove();
   }
   if (!key.startsWith('el:')) screen.style.setProperty(varName(key), css(master(hex)));
   changedCount(); persist();
 }
 function changedCount() {
-  const n = Object.keys(state.vals).length;
+  const n = new Set([...Object.keys(state.vals), ...Object.keys(state.links)]).size;
   const b = document.querySelector('.tab[data-t="changed"] .n'); if (b) b.textContent = n;
 }
 
@@ -281,7 +310,28 @@ $('#list').addEventListener('input', e => {
 });
 $('#list').addEventListener('click', e => {
   if (!e.target.classList.contains('reset')) return;
-  const row = e.target.closest('.row'); setVal(row.dataset.key, defMap[row.dataset.key].orig, row);
+  const row = e.target.closest('.row'), k = row.dataset.key;
+  if (linkChanged(k)) { delete state.links[k]; delete state.vals[k]; changedCount(); persist(); row.outerHTML = rowHtml(itemOf(k), usedByNow()); return; }
+  setVal(k, origOf(k), row);
+});
+const itemOf = k => defMap[k] && !k.startsWith('el:') ? defMap[k] : linkMap[k];
+// Colour from menus fill in when opened, so the long list isn't built for every row.
+const fillLinks = e => { const sel = e.target.closest('.lnk select'); if (!sel || sel.options.length > 1) return; const cur = sel.value; sel.innerHTML = linkOptions(); sel.value = cur; };
+$('#list').addEventListener('pointerdown', fillLinks);
+$('#list').addEventListener('focusin', fillLinks);
+$('#list').addEventListener('change', e => {
+  const sel = e.target.closest('.lnk select'); if (!sel) return;
+  const row = sel.closest('.row'), k = row.dataset.key, cur = linkOf(k), to = sel.value;
+  if (to === cur) return;
+  // Going to its own colour starts from the colour it showed, so nothing jumps.
+  if (!to && cur && !state.vals[k]) state.vals[k] = val(cur);
+  if (to === (linkMap[k].ref || '')) { delete state.links[k]; if (to || state.vals[k] === origOf(k)) delete state.vals[k]; }
+  else state.links[k] = to;
+  if (to) delete state.vals[k];
+  changedCount(); persist();
+  row.outerHTML = rowHtml(linkMap[k], usedByNow());
+  const nr = document.getElementById('row-' + k); if (nr) nr.querySelector('.lnk select').focus();
+  say(to ? `${human(linkMap[k].n)} (${linkMap[k].g}) now uses ${linkLabel(to)}.` : `${human(linkMap[k].n)} (${linkMap[k].g}) now has its own colour.`);
 });
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b) return; tab = b.dataset.t; $('#search').value = ''; renderList(); });
 $('#search').addEventListener('input', renderList);
@@ -302,13 +352,15 @@ const resetBtn = $('#btnReset'); let resetArmed = false;
 resetBtn.addEventListener('click', () => {
   if (!resetArmed) { resetArmed = true; resetBtn.textContent = 'Click again to reset'; setTimeout(() => { resetArmed = false; resetBtn.textContent = 'Reset all'; }, 3000); return; }
   resetArmed = false; resetBtn.textContent = 'Reset all';
-  state.vals = {}; state.dim = 100; state.sat = 100; syncMasters(); paintDemo(); renderList(); persist(); say('All colours are back to the loaded theme.');
+  state.vals = {}; state.links = {}; state.dim = 100; state.sat = 100; syncMasters(); paintDemo(); renderList(); persist(); say('All colours are back to the loaded theme.');
 });
 
 /* ---------- gallery hand-off and sharing ---------- */
 // Replace the editor's colours with a full set of values (from the gallery or a share code).
-function applyVals(vals, fname, name) {
-  state.vals = {}; for (const k in vals) if (defMap[k] && vals[k] !== defMap[k].orig) state.vals[k] = vals[k];
+function applyVals(vals, fname, name, lk = {}) {
+  state.vals = {}; state.links = {};
+  for (const k in lk) if (linkMap[k] && !linkMap[k].fixed && (lk[k] === '' || defMap[lk[k]]) && lk[k] !== (linkMap[k].ref || '')) state.links[k] = lk[k];
+  for (const k in vals) if (origOf(k) ? vals[k] !== origOf(k) : linkOf(k) === '' && linkChanged(k)) state.vals[k] = vals[k];
   state.dim = 100; state.sat = 100; $('#fname').value = fname;
   syncMasters(); paintDemo(); renderList(); persist();
   if (!$('#exportBox').hidden) $('#xmlOut').value = buildXml();
@@ -319,7 +371,7 @@ const sameBase = () => base && model.all.length === base.all.length && model.all
 $('#btnShare').addEventListener('click', () => {
   if (!sameBase()) { say('Sharing only works for themes built on the bundled theme, not on a theme file you loaded. Download the XML instead.'); return; }
   const name = $('#fname').value.trim().replace(/\.xml$/i, '').replace(/^theme_/, '').replace(/[_-]+/g, ' ').trim().replace(/\b\w/g, c => c.toUpperCase()) || 'My theme';
-  const code = MA3.packCode(model, k => master(val(k)));
+  const code = MA3.packCode(model, k => master(val(k)), state.links);
   window.open(MA3.submitUrl(name, code), '_blank', 'noopener');
   say('GitHub opened with your theme filled in. Submit the form there; it shows up in the gallery once it is approved.');
 });
@@ -329,22 +381,22 @@ async function fromLink() {
   const q = new URLSearchParams(location.search);
   if (![...q.keys()].some(k => ['scheme', 'theme', 'code'].includes(k))) return '';
   history.replaceState(null, '', location.pathname);
-  let vals, fname, name;
+  let vals, lk = {}, fname, name;
   try {
     if (q.get('scheme')) {
       const t = MA3.BUILTINS.find(x => x.id === q.get('scheme')); if (!t) throw new Error('That gallery theme no longer exists.');
       if (t.file) {
         const r = await fetch(t.file); if (!r.ok) throw new Error('Could not load ' + t.name + '.');
-        vals = MA3.valsFromTheme(base, MA3.parseTheme(await r.text()));
+        ({vals, links: lk} = MA3.fromTheme(base, MA3.parseTheme(await r.text())));
       } else vals = MA3.valsFrom(base, t.fn);
       fname = t.file ? t.file.split('/').pop() : t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`; name = t.name;
     } else if (q.get('theme')) {
       const r = await fetch('gallery/themes.json', {cache: 'no-cache'}); if (!r.ok) throw new Error('Could not load the community gallery.');
       const t = (await r.json()).find(x => x.id === q.get('theme')); if (!t) throw new Error('That community theme no longer exists.');
-      vals = MA3.unpackCode(base, t.code); fname = `theme_${t.id}.xml`; name = t.name;
-    } else { vals = MA3.unpackCode(base, q.get('code')); fname = 'theme_shared.xml'; name = 'The shared theme'; }
+      ({vals, links: lk} = MA3.unpackCode(base, t.code)); fname = `theme_${t.id}.xml`; name = t.name;
+    } else { ({vals, links: lk} = MA3.unpackCode(base, q.get('code'))); fname = 'theme_shared.xml'; name = 'The shared theme'; }
   } catch (err) { return err.message; }
-  load(base.src); applyVals(vals, fname, name);
+  load(base.src); applyVals(vals, fname, name, lk);
   return null;
 }
 
@@ -388,7 +440,7 @@ $('#btnSave').addEventListener('click', () => download(buildXml(), $('#fname').v
 /* ---------- storage (per-viewer draft) ---------- */
 const LS = 'ma3-theme-builder-v1';
 let saveT;
-function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LS, JSON.stringify({vals: state.vals, dim: state.dim, sat: state.sat, src: SRC.length < 1500000 ? SRC : null, fname: $('#fname').value})); } catch {} }, 300); }
+function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LS, JSON.stringify({vals: state.vals, links: state.links, dim: state.dim, sat: state.sat, src: SRC.length < 1500000 ? SRC : null, fname: $('#fname').value})); } catch {} }, 300); }
 
 /* ---------- boot ---------- */
 (async () => {
@@ -396,12 +448,12 @@ function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { local
   catch { say('Could not load the bundled theme.xml. Use Load theme.xml to open one, or serve this folder over http.'); return; }
   try {
     const s = JSON.parse(localStorage.getItem(LS) || 'null');
-    if (s) { if (s.src) { try { load(s.src); } catch { load(base.src); } } state.vals = {}; for (const k in s.vals || {}) if (defMap[k]) state.vals[k] = s.vals[k]; state.dim = s.dim || 100; state.sat = s.sat || 100; if (s.fname) $('#fname').value = s.fname; }
+    if (s) { if (s.src) { try { load(s.src); } catch { load(base.src); } } state.vals = {}; for (const k in s.vals || {}) if (defMap[k] || linkMap[k]) state.vals[k] = s.vals[k]; state.links = {}; for (const k in s.links || {}) if (linkMap[k] && (s.links[k] === '' || defMap[s.links[k]])) state.links[k] = s.links[k]; state.dim = s.dim || 100; state.sat = s.sat || 100; if (s.fname) $('#fname').value = s.fname; }
   } catch {}
   const linkErr = await fromLink();
   if (linkErr === null) return;
   syncMasters(); paintDemo(); renderList();
   if (linkErr) { say(linkErr + ' Your own theme is still open.'); return; }
-  say(`${defs.length} shared colours and ${elems.length} element colours loaded.` + (Object.keys(state.vals).length ? ` Your ${Object.keys(state.vals).length} earlier changes are restored.` : ''));
+  say(`${defs.length} shared colours and ${elems.length} element colours loaded.` + (isDirty() ? ` Your earlier changes are restored.` : ''));
 })();
 })();

@@ -5,10 +5,11 @@ const say = t => { $('#status').textContent = t; };
 const {esc} = MA3;
 let model = null, items = [], filter = 'all';
 
-async function builtinVals(t) {
-  if (!t.file) return MA3.valsFrom(model, t.fn);
+// {vals, links} of a built-in theme on the bundled theme.
+async function builtinTheme(t) {
+  if (!t.file) return {vals: MA3.valsFrom(model, t.fn), links: {}};
   const r = await fetch(t.file); if (!r.ok) throw new Error('Could not load ' + t.file);
-  return MA3.valsFromTheme(model, MA3.parseTheme(await r.text()));
+  return MA3.fromTheme(model, MA3.parseTheme(await r.text()));
 }
 function card(t) {
   const edit = t.kind === 'community' ? `index.html?theme=${encodeURIComponent(t.id)}` : `index.html?scheme=${encodeURIComponent(t.id)}`;
@@ -26,7 +27,9 @@ function render() {
   $('#gridCommunity').innerHTML = com.length ? com.map(card).join('') : total
     ? `<div class="gempty"><strong>No community themes match "${esc(q)}"</strong></div>`
     : `<div class="gempty"><strong>No community themes yet</strong><p>Be the first. Build a theme in the editor, then press Share to gallery under Export.</p><a class="btn primary" href="#share">How sharing works</a></div>`;
-  $('#gridBuiltin').innerHTML = bi.length ? bi.map(card).join('') : `<div class="gempty"><strong>No built-in themes match "${esc(q)}"</strong></div>`;
+  let html = '', g = '';
+  for (const t of bi) { if (t.group !== g) { g = t.group; html += `<h3 class="gsub">${esc(MA3.GROUPS[g] || g)} <span class="n">${bi.filter(x => x.group === g).length}</span></h3>`; } html += card(t); }
+  $('#gridBuiltin').innerHTML = bi.length ? html : `<div class="gempty"><strong>No built-in themes match "${esc(q)}"</strong></div>`;
   $('#secCommunity').hidden = filter === 'builtin';
   $('#secBuiltin').hidden = filter === 'community' || (q && !bi.length && filter === 'all');
 }
@@ -43,7 +46,7 @@ document.addEventListener('click', e => {
   const t = items.find(x => x.kind + ':' + x.id === b.closest('.gcard').dataset.id);
   // MA's own themes download as the original file.
   const fname = t.file ? t.file.split('/').pop() : t.id === 'default' ? 'theme.xml' : `theme_${t.id}.xml`;
-  const url = t.file || URL.createObjectURL(new Blob([MA3.buildXml(model, k => t.vals[k], fname)], {type: 'application/xml'}));
+  const url = t.file || URL.createObjectURL(new Blob([MA3.buildXml(model, k => t.vals[k], fname, t.links)], {type: 'application/xml'}));
   const a = document.createElement('a'); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
   if (!t.file) setTimeout(() => URL.revokeObjectURL(url), 1000);
   say(`Downloaded ${fname}. Put it in gma3_library/colorthemes and import it from the Color Theme menu.`);
@@ -54,14 +57,14 @@ document.addEventListener('click', e => {
   catch { say('Could not load the bundled theme.xml. Serve this folder over http to see the gallery.'); return; }
   items = [];
   for (const t of MA3.BUILTINS) {
-    try { items.push({kind: 'builtin', id: t.id, name: t.name, note: t.note, file: t.file, vals: await builtinVals(t)}); }
+    try { items.push({kind: 'builtin', id: t.id, group: t.group, name: t.name, note: t.note, file: t.file, ...await builtinTheme(t)}); }
     catch (err) { console.warn('Skipped built-in theme', t.id, err.message); }
   }
   try {
     const r = await fetch('gallery/themes.json', {cache: 'no-cache'}); if (!r.ok) throw 0;
     const list = await r.json(), com = [];
     for (const t of list) {
-      try { com.push({kind: 'community', id: t.id, name: t.name, author: t.author, note: t.description || '', vals: MA3.unpackCode(model, t.code)}); }
+      try { com.push({kind: 'community', id: t.id, name: t.name, author: t.author, note: t.description || '', ...MA3.unpackCode(model, t.code)}); }
       catch (err) { console.warn('Skipped community theme', t.id, err.message); }
     }
     items = [...com.reverse(), ...items]; // newest first
