@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for sharing a theme. A bot checks the code below and replies with a preview link. Once the theme is approved it appears in the [gallery](https://themes.sulfurdesign.com/gallery.html) within a few minutes.
+        Thanks for sharing a theme. A bot checks the code below and replies with a preview link. Once the theme is approved it appears in the [gallery](https://jaylenjinx.github.io/ma3-theme-builder/gallery.html) within a few minutes.
   - type: input
     id: theme-name
     attributes:

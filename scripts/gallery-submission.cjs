@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const MA3 = require('../core.js');
 
-const SITE = 'https://themes.sulfurdesign.com/';
+const SITE = 'https://jaylenjinx.github.io/ma3-theme-builder/';
 const ROOT = path.join(__dirname, '..');
 const LIST = path.join(ROOT, 'gallery', 'themes.json');
 
