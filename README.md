@@ -12,7 +12,7 @@ A browser tool for editing grandMA3 colour themes. Pick colours, read what each 
 - Lists every shared colour (Global, Sheets, Playback, Pools) with a colour picker, hex box, opacity slider and a short note on where it shows up, plus which screen elements use it.
 - Lists every screen element with a **Colour from** menu, so any element can use a different shared colour or its own colour.
 - A live screen with pools, a fixture sheet, executors, buttons and the command line. Click anything on it to jump to its colour.
-- A separate gallery page (`gallery.html`) with community themes and 58 built-in ones: MA's own themes (default, Night, Legacy, Daylight), 37 code editor schemes (Dracula, Nord, Gruvbox, Catppuccin, Kanagawa, Everforest, SynthWave '84 and more) and 17 palettes made for the desk (Tungsten, Congo Blue, Red Night, High Contrast and more). Edit any of them or download it straight away.
+- A separate gallery page (`gallery.html`) with community themes and 59 built-in ones: MA's own themes (default, Night, Legacy, Daylight), 37 code editor schemes (Dracula, Nord, Gruvbox, Catppuccin, Kanagawa, Everforest, SynthWave '84 and more) and 18 palettes made for the desk (Tungsten, Congo Blue, Red Night, High Contrast, OLED Black and more). Edit any of them or download it straight away.
 - Master dimmer and saturation sliders, and a hold-to-compare button.
 - Exports the theme with the original file's structure untouched, so it imports straight back into MA3. Exporting with no changes gives back the original file byte for byte.
 

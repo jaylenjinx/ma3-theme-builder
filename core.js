@@ -155,6 +155,23 @@ function schemeHex(sc, key, orig) {
   } else rgb = mixRgb(rgbOf(sc.ramp[1]), rgbOf(sc[hueName(h)]), clamp(v * 1.15, 0, 1));
   return hx(rgb[0]) + hx(rgb[1]) + hx(rgb[2]) + a.toUpperCase();
 }
+// OLED: every dark grey goes pure black so the panel's pixels switch off. A few state greys
+// (hover, pressed, selected, focus) stay just above black so they still read. Sheet cells keep
+// their meaning in their coloured text on a black cell; other coloured fills become deep tints;
+// bright colours (text, selection, indicators) stay as they are. Alpha never changes.
+const OLED_KEEP = /^(Global\.(Hover|Pressed|BackgroundSelected|PropertyBackgroundActive|SelectedCellBackground|WindowFocus|IndicatorBar|TitleGray|BackgroundOtherProgrammer)|el:.*\.(Hover|Pressed|Focus|Selected\w*Background)$)/;
+function oledHex(key, orig, has) {
+  const c = parse(orig), [h, s, v] = rgb2hsv(c.r, c.g, c.b), a = orig.slice(6, 8).toUpperCase();
+  if (s < 0.2) {
+    if (v >= 0.45) return orig.toUpperCase();
+    return (OLED_KEEP.test(key) ? '1C1C1C' : '000000') + a;
+  }
+  if (v >= 0.7) return orig.toUpperCase();
+  if (/^SheetColor\./.test(key) && has(key + 'Text')) return '000000' + a;
+  const [r, g, b] = hsv2rgb(h, s, v * 0.4);
+  return hx(r) + hx(g) + hx(b) + a;
+}
+
 // Built-in gallery entries: fn(key, baseValue) gives that entry's colour.
 const BUILTINS = [
   {id:'default', group:'MA', name:'MA default', note:'The bundled theme, unchanged', fn:(k, o) => o},
@@ -163,10 +180,11 @@ const BUILTINS = [
   {id:'legacy', group:'MA', name:'MA Legacy', note:'grandMA3 default_legacy theme', file:'themes/default_legacy.xml'},
   {id:'daylight', group:'MA', name:'MA Daylight', note:'grandMA3 default_daylight theme', file:'themes/default_daylight.xml'},
   ...SCHEMES.map(sc => ({id: sc.id, group: sc.set, name: sc.name,
-    note: (sc.light ? 'Light ' : 'Dark ') + (sc.set === 'palette' ? 'palette' : 'editor scheme'), fn: (k, o) => schemeHex(sc, k, o)}))
+    note: (sc.light ? 'Light ' : 'Dark ') + (sc.set === 'palette' ? 'palette' : 'editor scheme'), fn: (k, o) => schemeHex(sc, k, o)})),
+  {id:'oled', group:'palette', name:'OLED Black', note:'Pure black everywhere it can be, for OLED screens', fn:(k, o, model) => oledHex(k, o, x => !!(model && model.defMap[x]))}
 ];
 const GROUPS = {MA: 'MA themes', editor: 'Code editor schemes', palette: 'Palettes'};
-function valsFrom(model, fn) { const out = {}; for (const d of model.all) out[d.key] = fn(d.key, d.orig); return out; }
+function valsFrom(model, fn) { const out = {}; for (const d of model.all) out[d.key] = fn(d.key, d.orig, model); return out; }
 // Another theme file on the base theme's keys: {vals, links}. Elements take the other file's link
 // to a shared colour (or its own colour); anything the other file doesn't set keeps the base colour.
 function fromTheme(model, other) {
