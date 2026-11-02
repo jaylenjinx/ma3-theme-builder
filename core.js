@@ -155,12 +155,48 @@ function schemeHex(sc, key, orig) {
   } else rgb = mixRgb(rgbOf(sc.ramp[1]), rgbOf(sc[hueName(h)]), clamp(v * 1.15, 0, 1));
   return hx(rgb[0]) + hx(rgb[1]) + hx(rgb[2]) + a.toUpperCase();
 }
+// A small palette turned into a scheme for schemeHex. Background and text set the neutral ramp,
+// accent becomes the selection colour, and each hue bucket takes the nearest palette colour within
+// 40 degrees. A bucket with no palette colour near it keeps its own hue at the palette's average
+// saturation and brightness, so errors stay red and OK stays green.
+const HUE_AT = {red: 0, orange: 30, yellow: 55, green: 120, cyan: 180, blue: 220, purple: 275, pink: 320};
+const hexRgb = c => hx(c[0]) + hx(c[1]) + hx(c[2]);
+const luma = c => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+function paletteScheme(p) {
+  const bg = rgbOf(p.bg), tx = rgbOf(p.text), light = luma(bg) > luma(tx);
+  const mix = t => hexRgb(mixRgb(bg, tx, t));
+  const deep = light ? mix(0.06) : hexRgb(mixRgb(bg, [0, 0, 0], 0.35));
+  const cols = [p.accent, ...(p.extra || [])].filter(Boolean).map(h => { const c = parse(h + 'FF'); return {h, hsv: rgb2hsv(c.r, c.g, c.b)}; });
+  const tinted = cols.filter(c => c.hsv[1] > 0.25);
+  const avg = i => tinted.length ? tinted.reduce((a, c) => a + c.hsv[i], 0) / tinted.length : (i === 1 ? 0.6 : 0.85);
+  const sc = {id: 'custom', name: 'Custom palette', light, ramp: [deep, p.bg, mix(0.07), mix(0.15), mix(0.5), p.text], accent: p.accent};
+  for (const [name, deg] of Object.entries(HUE_AT)) {
+    let best = null, bestD = 41;
+    for (const c of tinted) { const d = Math.abs(((c.hsv[0] * 360 - deg + 540) % 360) - 180); if (d < bestD) { best = c; bestD = d; } }
+    sc[name] = best ? best.h : hexRgb(hsv2rgb(deg / 360, avg(1), Math.max(avg(2), 0.6)));
+  }
+  return sc;
+}
+// A random palette that hangs together: a tinted near-black (or near-white) background, a soft
+// text colour, an accent and two colours spaced around the colour wheel from it.
+function randomPalette(light = false) {
+  const h = Math.random(), turn = [0.25, 0.33, 0.42][Math.floor(Math.random() * 3)];
+  const c = (hh, s, v) => hexRgb(hsv2rgb(((hh % 1) + 1) % 1, s, v));
+  return light
+    ? {bg: c(h, 0.06, 0.97), text: c(h, 0.25, 0.22), accent: c(h, 0.75, 0.7), extra: [c(h + turn, 0.6, 0.65), c(h - turn, 0.6, 0.65)]}
+    : {bg: c(h, 0.35, 0.09), text: c(h, 0.08, 0.9), accent: c(h, 0.65, 0.95), extra: [c(h + turn, 0.55, 0.85), c(h - turn, 0.55, 0.85)]};
+}
+
 // OLED: every dark grey goes pure black so the panel's pixels switch off. A few state greys
 // (hover, pressed, selected, focus) stay just above black so they still read. Sheet cells keep
 // their meaning in their coloured text on a black cell; other coloured fills become deep tints;
 // bright colours (text, selection, indicators) stay as they are. Alpha never changes.
 const OLED_KEEP = /^(Global\.(Hover|Pressed|BackgroundSelected|PropertyBackgroundActive|SelectedCellBackground|WindowFocus|IndicatorBar|TitleGray|BackgroundOtherProgrammer)|el:.*\.(Hover|Pressed|Focus|Selected\w*Background)$)/;
+// Fader bars: the back goes black and the level becomes a faint grey with light text on it, so the
+// level still reads without lighting up the panel.
+const OLED_SET = {'Playback.FaderBarBack': '00000040', 'Playback.FaderBar': 'FFFFFF1F', 'Playback.FaderBarText': 'B4B4B4FF'};
 function oledHex(key, orig, has) {
+  if (OLED_SET[key]) return OLED_SET[key];
   const c = parse(orig), [h, s, v] = rgb2hsv(c.r, c.g, c.b), a = orig.slice(6, 8).toUpperCase();
   if (s < 0.2) {
     if (v >= 0.45) return orig.toUpperCase();
@@ -300,7 +336,7 @@ function submitUrl(name, code) {
   return SUBMIT_URL + '?' + q.toString();
 }
 
-const API = {clamp, hx, parse, rgb2hsv, hsv2rgb, mapHex, nightFn, css, esc, parseTheme, buildXml, SCHEMES, schemeHex, BUILTINS, GROUPS, valsFrom, fromTheme,
+const API = {clamp, hx, parse, rgb2hsv, hsv2rgb, mapHex, nightFn, css, esc, parseTheme, buildXml, SCHEMES, schemeHex, BUILTINS, GROUPS, paletteScheme, randomPalette, valsFrom, fromTheme,
   CODE_PREFIX, CODE_PREFIX2, packCode, unpackCode, slug, previewHtml, submitUrl};
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.MA3 = API;
 })(typeof self !== 'undefined' ? self : this);

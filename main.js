@@ -355,6 +355,27 @@ resetBtn.addEventListener('click', () => {
   state.vals = {}; state.links = {}; state.dim = 100; state.sat = 100; syncMasters(); paintDemo(); renderList(); persist(); say('All colours are back to the loaded theme.');
 });
 
+/* ---------- build from a palette ---------- */
+const palIn = k => document.querySelector(`#pals input[data-p="${k}"]`);
+const readPal = () => ({bg: palIn('bg').value.slice(1).toUpperCase(), text: palIn('text').value.slice(1).toUpperCase(), accent: palIn('accent').value.slice(1).toUpperCase(),
+  extra: ['x1', 'x2'].map(k => palIn(k).value.slice(1).toUpperCase())});
+function writePal(p) { palIn('bg').value = '#' + p.bg; palIn('text').value = '#' + p.text; palIn('accent').value = '#' + p.accent; palIn('x1').value = '#' + p.extra[0]; palIn('x2').value = '#' + p.extra[1]; }
+let palT;
+function buildFromPalette(quiet) {
+  const p = readPal(), sc = MA3.paletteScheme(p);
+  applyVals(MA3.valsFrom(model, (k, o) => MA3.schemeHex(sc, k, o)), 'theme_palette.xml', 'Your palette');
+  state.palette = p; persist();
+  if (!quiet) say('Built a theme from your palette. Fine-tune any colour below, then Export.');
+}
+$('#btnPalette').addEventListener('click', () => {
+  const box = $('#paletteBox'); box.hidden = !box.hidden; $('#btnPalette').setAttribute('aria-expanded', String(!box.hidden));
+  if (!box.hidden) box.scrollIntoView({block: 'nearest'});
+});
+$('#pals').addEventListener('input', () => { clearTimeout(palT); palT = setTimeout(() => buildFromPalette(true), 60); });
+$('#btnPalApply').addEventListener('click', () => buildFromPalette());
+$('#btnPalDark').addEventListener('click', () => { writePal(MA3.randomPalette(false)); buildFromPalette(); });
+$('#btnPalLight').addEventListener('click', () => { writePal(MA3.randomPalette(true)); buildFromPalette(); });
+
 /* ---------- gallery hand-off and sharing ---------- */
 // Replace the editor's colours with a full set of values (from the gallery or a share code).
 function applyVals(vals, fname, name, lk = {}) {
@@ -379,7 +400,7 @@ $('#btnShare').addEventListener('click', () => {
 // Returns a message when the link couldn't be opened, so the saved draft stays as it was.
 async function fromLink() {
   const q = new URLSearchParams(location.search);
-  if (![...q.keys()].some(k => ['scheme', 'theme', 'code'].includes(k))) return '';
+  if (![...q.keys()].some(k => ['scheme', 'theme', 'code', 'palette'].includes(k))) return '';
   history.replaceState(null, '', location.pathname);
   let vals, lk = {}, fname, name;
   try {
@@ -394,6 +415,11 @@ async function fromLink() {
       const r = await fetch('gallery/themes.json', {cache: 'no-cache'}); if (!r.ok) throw new Error('Could not load the community gallery.');
       const t = (await r.json()).find(x => x.id === q.get('theme')); if (!t) throw new Error('That community theme no longer exists.');
       ({vals, links: lk} = MA3.unpackCode(base, t.code)); fname = `theme_${t.id}.xml`; name = t.name;
+    } else if (q.get('palette')) {
+      const h = q.get('palette').split(/[-,]/).map(x => x.replace(/^#/, '').toUpperCase());
+      if (h.length < 3 || !h.every(x => /^[0-9A-F]{6}$/.test(x))) throw new Error('That palette link is damaged.');
+      const p = {bg: h[0], text: h[1], accent: h[2], extra: [h[3] || h[2], h[4] || h[3] || h[2]]}; writePal(p); state.palette = p;
+      vals = MA3.valsFrom(base, (k, o) => MA3.schemeHex(MA3.paletteScheme(p), k, o)); fname = 'theme_palette.xml'; name = 'The palette';
     } else { ({vals, links: lk} = MA3.unpackCode(base, q.get('code'))); fname = 'theme_shared.xml'; name = 'The shared theme'; }
   } catch (err) { return err.message; }
   load(base.src); applyVals(vals, fname, name, lk);
@@ -440,7 +466,7 @@ $('#btnSave').addEventListener('click', () => download(buildXml(), $('#fname').v
 /* ---------- storage (per-viewer draft) ---------- */
 const LS = 'ma3-theme-builder-v1';
 let saveT;
-function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LS, JSON.stringify({vals: state.vals, links: state.links, dim: state.dim, sat: state.sat, src: SRC.length < 1500000 ? SRC : null, fname: $('#fname').value})); } catch {} }, 300); }
+function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(LS, JSON.stringify({vals: state.vals, links: state.links, palette: state.palette, dim: state.dim, sat: state.sat, src: SRC.length < 1500000 ? SRC : null, fname: $('#fname').value})); } catch {} }, 300); }
 
 /* ---------- boot ---------- */
 (async () => {
@@ -448,7 +474,7 @@ function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { local
   catch { say('Could not load the bundled theme.xml. Use Load theme.xml to open one, or serve this folder over http.'); return; }
   try {
     const s = JSON.parse(localStorage.getItem(LS) || 'null');
-    if (s) { if (s.src) { try { load(s.src); } catch { load(base.src); } } state.vals = {}; for (const k in s.vals || {}) if (defMap[k] || linkMap[k]) state.vals[k] = s.vals[k]; state.links = {}; for (const k in s.links || {}) if (linkMap[k] && (s.links[k] === '' || defMap[s.links[k]])) state.links[k] = s.links[k]; state.dim = s.dim || 100; state.sat = s.sat || 100; if (s.fname) $('#fname').value = s.fname; }
+    if (s) { if (s.src) { try { load(s.src); } catch { load(base.src); } } state.vals = {}; for (const k in s.vals || {}) if (defMap[k] || linkMap[k]) state.vals[k] = s.vals[k]; state.links = {}; for (const k in s.links || {}) if (linkMap[k] && (s.links[k] === '' || defMap[s.links[k]])) state.links[k] = s.links[k]; state.dim = s.dim || 100; state.sat = s.sat || 100; if (s.palette && s.palette.extra) { state.palette = s.palette; writePal(s.palette); } if (s.fname) $('#fname').value = s.fname; }
   } catch {}
   const linkErr = await fromLink();
   if (linkErr === null) return;
