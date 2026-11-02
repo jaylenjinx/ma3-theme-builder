@@ -15,6 +15,7 @@
     <h1>MA3 Theme Builder<small>Edit a grandMA3 colour theme and watch a console screen update as you go. Click anything on the screen to jump to its colour.</small></h1>
     <div class="actions">
       <a class="btn ghost" href="gallery.html">Gallery</a>
+      <button class="btn" id="btnPalette" type="button" aria-expanded="false" aria-controls="paletteBox">From a palette</button>
       <label class="btn ghost" for="fileIn">Load theme.xml</label>
       <input type="file" id="fileIn" accept=".xml,text/xml" hidden>
       <button class="btn" id="btnReset" type="button">Reset all</button>
@@ -33,6 +34,21 @@
         <div class="tabs" role="tablist" id="tabs"></div>
         <p class="tabNote" id="tabNote"></p>
         <input class="search" id="search" type="search" placeholder="Search colours, e.g. fader, selected, preset">
+      </div>
+      <div class="exportBox paletteBox" id="paletteBox" hidden>
+        <p class="tabNote"><b>Build a theme from a palette.</b> Pick a few colours and the whole theme is rebuilt around them as you go. It replaces your current colours; Reset all goes back.</p>
+        <div class="pals" id="pals">
+          <label class="pal"><input type="color" data-p="bg" value="#17150f"><span>Background</span></label>
+          <label class="pal"><input type="color" data-p="text" value="#e6e2d3"><span>Text</span></label>
+          <label class="pal"><input type="color" data-p="accent" value="#f2d555"><span>Accent</span></label>
+          <label class="pal"><input type="color" data-p="x1" value="#62d9c0"><span>Colour 2</span></label>
+          <label class="pal"><input type="color" data-p="x2" value="#c562d9"><span>Colour 3</span></label>
+        </div>
+        <div class="fileRow">
+          <button class="btn" id="btnPalDark" type="button">Shuffle dark</button>
+          <button class="btn" id="btnPalLight" type="button">Shuffle light</button>
+          <button class="btn primary" id="btnPalApply" type="button">Build theme</button>
+        </div>
       </div>
       <div class="exportBox" id="exportBox" hidden>
         <div class="fileRow">
